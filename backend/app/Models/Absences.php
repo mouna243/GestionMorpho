@@ -7,12 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Absences extends Model
 {
     protected $filable = [
+        'workshit_id',
         'user_id',
-        'date',
-        'heure_debut',
-        'heure_fin',
-        '',
-        'statut',
+        'is_justified',
         'pdf'
     ];
 

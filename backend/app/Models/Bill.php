@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Bill extends Model
 {
-
+    protected $filable = [];
 
     public function billable(){
         return $this->morphTo("billable");
