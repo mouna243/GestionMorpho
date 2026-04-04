@@ -26,6 +26,7 @@ return new class extends Migration
             $table->id();
             $table->morphs("billable");
             $table->double("montant");
+            $table->boolean("is_payed")->default(false);
             $table->timestamps();
         });
     }
