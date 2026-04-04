@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class task extends Model
+class Task extends Model
 {
      protected $filable = [
             'name',
@@ -12,4 +12,8 @@ class task extends Model
             'is_completed',
             'departement_id'
      ];
+
+     public function departement(){
+        return $this->belongsTo(Departement::class);
+     }
 }

@@ -12,4 +12,8 @@ class paiment extends Model
             'reservation_id'
 
      ];
+
+     public function reservation(){
+        return $this->hasOne(Reservation::class);
+     }
 }

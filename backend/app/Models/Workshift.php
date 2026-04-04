@@ -13,4 +13,12 @@ class Workshift extends Model
             'check_in',
             'check_out'
      ];
+
+     public function departement(){
+        return $this->belongsTo(Departement::class);
+     }
+
+     public function absences(){
+        return $this->hasMany(Absences::class);
+     }
 }

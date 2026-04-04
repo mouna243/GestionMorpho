@@ -14,4 +14,19 @@ class Reservation extends Model
             'user_id',
             'chamber_id'
      ];
+
+     // relation : chamber , user , paiment
+
+     public function chamber(){
+        return $this->belongsTo(Chamber::class);
+     }
+
+     public function user(){
+        return $this->belongsTo(User::class)->where('role', 'client');
+     }
+
+     public function paiment(){
+        return $this->belongsTo(Paiment::class);
+     }
+
 }

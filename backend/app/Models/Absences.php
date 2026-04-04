@@ -13,4 +13,12 @@ class Absences extends Model
         'pdf'
     ];
 
+    public function user(){
+        return $this->belongsTo(User::class)->where('role', 'staff');
+    }
+
+    public function workshift(){
+        return $this->belongsTo(Workshift::class);
+    }
+
 }

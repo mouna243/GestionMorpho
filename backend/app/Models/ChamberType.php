@@ -11,4 +11,8 @@ class ChamberType extends Model
             'description',
             'is_available',
      ];
+
+     public function chambers(){
+        return $this->hasMany(Chamber::class);
+     }
 }

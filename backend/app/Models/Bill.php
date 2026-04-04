@@ -8,7 +8,8 @@ class Bill extends Model
 {
     protected $filable = [
         "billable",
-        "montant"
+        "montant",
+        "is_payed"
     ];
 
     public function billable()

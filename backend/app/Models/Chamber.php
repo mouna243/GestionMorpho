@@ -13,4 +13,13 @@ class Chamber extends Model
         "is_available",
         "chamber_type_id"
      ];
+
+     // relations
+     public function chamber_type(){
+        return $this->belongsTo(ChamberType::class);
+     }
+
+     public function reservations(){
+        return $this->hasMany(Reservation::class);
+     }
 }

@@ -12,4 +12,9 @@ class Plat extends Model
         'discription',
         'is_available'
     ];
+
+    // commandes
+    public function commandes(){
+        return $this->belongsToMany(Commande::class);
+    }
 }

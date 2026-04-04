@@ -14,4 +14,14 @@ class Service extends Model
             'time_end',
             'is_available'
      ];
+
+     //commandes
+     public function commandes(){
+        return $this->hasMany(Commande::class);
+     }
+
+     public function spaSessions(){
+        return $this->hasMany(SpaSession::class);
+     }
+     
 }
