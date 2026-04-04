@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('image');
             $table->string('description');
-            $table->boolean('status');
+            $table->boolean('is_available')->default('true');
             $table->integer('chamber_type_id');
             $table->foreign('chamber_type_id')->references('id')->on('chamber_types');
             $table->timestamps();
