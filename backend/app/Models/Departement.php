@@ -9,7 +9,8 @@ class departement extends Model
      protected $filable = [
         'name',
         'description',
-        'is_active'
+        'is_active',
+        'workshift_id'
      ];
 
      public function workshifts(){

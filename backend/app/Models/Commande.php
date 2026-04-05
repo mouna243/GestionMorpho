@@ -11,7 +11,8 @@ class Commande extends Model
             'date_sortie',
             'prix',
             'client_id',
-            'service_id'
+            'service_id',
+            'plat_id'
      ];
 
     public function bills(){
