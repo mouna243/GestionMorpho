@@ -11,8 +11,7 @@ class Chamber extends Model
         "image",
         "description",
         "is_available",
-        "chamber_type_id",
-        "reservation_id"
+        "chamber_type_id"
      ];
 
      // relations
