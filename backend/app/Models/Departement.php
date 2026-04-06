@@ -9,8 +9,7 @@ class departement extends Model
      protected $filable = [
         'name',
         'description',
-        'is_active',
-        'workshift_id'
+        'is_active'
      ];
 
      public function workshifts(){
@@ -22,7 +21,7 @@ class departement extends Model
         return $this->hasMany(Task::class);
     }
 
-    public function user(){
+    public function staffs(){
         return $this->hasMany(User::class)->where('role', 'staff');
     }
 }

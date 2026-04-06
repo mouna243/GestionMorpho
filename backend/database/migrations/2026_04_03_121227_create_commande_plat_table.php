@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreign('commande_id')->references('id')->on('commandes');
             $table->integer('plat_id');
             $table->foreign('plat_id')->references('id')->on('plats');
+            $table->integer('quantite');
             $table->timestamps();
         });
     }

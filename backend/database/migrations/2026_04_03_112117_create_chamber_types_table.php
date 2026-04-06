@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('description');
+            $table->string('prix');
             $table->boolean('is_available')->default('true');
             $table->timestamps();
         });

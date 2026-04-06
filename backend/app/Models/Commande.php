@@ -8,7 +8,6 @@ class Commande extends Model
 {
      protected $filable = [
             'date',
-            'date_sortie',
             'prix',
             'client_id',
             'service_id',
@@ -24,8 +23,8 @@ class Commande extends Model
         return $this->belongsTo(Service::class)->where('name', 'Restoration');
     }
     // user
-    public function user(){
-        return $this->belongsTo(User::class)->where('role', 'client');
+    public function client(){
+        return $this->belongsTo(User::class,'client_id')->where('role', 'client');
     }
 
     // plats

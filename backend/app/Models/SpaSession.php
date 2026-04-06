@@ -8,6 +8,8 @@ class SpaSession extends Model
 {
 
     protected $filable = [
+        'type_spa_session_id',
+        'client_id',
         'date_debut',
         'date_fin',
         'prix',
@@ -19,15 +21,19 @@ class SpaSession extends Model
         return $this->belongsTo(Service::class)->where('name', 'SPA');
     }
 
-    public function user()
+    public function client()
     {
-        return $this->belongsTo(User::class)->where('role', 'client');
+        return $this->belongsTo(User::class,'client_id')->where('role', 'client');
     }
 
 
     public function bills()
     {
         return $this->morphMany(Bill::class, "billable");
+    }
+
+    public function TypeSpaSession(){
+        return $this->belongsTo(TypeSpaSession::class);
     }
 
 }

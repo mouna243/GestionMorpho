@@ -10,10 +10,9 @@ class paiment extends Model
             'date',
             'prix',
             'reservation_id'
-
      ];
 
      public function reservation(){
-        return $this->hasOne(Reservation::class);
+        return $this->belongsTo(Reservation::class);
      }
 }

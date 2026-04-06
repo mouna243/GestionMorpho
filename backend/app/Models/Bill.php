@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Bill extends Model
 {
     protected $filable = [
-        "billable",
+        "billable_id",
+        "billable_type",
         "montant",
         "is_payed"
     ];

@@ -10,14 +10,16 @@ return new class extends Migration
      * Run the migrations.
      */
 
+
+
     public function up(): void
     {
-        Schema::create('spa_sessions', function (Blueprint $table) {
+        Schema::create('type_spa_sessions', function (Blueprint $table) {
             $table->id();
-            $table->date('date_debut');
-            $table->date('date_fin');
+            $table->string('name');
+            $table->string('discription');
             $table->float('prix');
-            $table->enum('type', ['Massage', 'Soins du corps', 'Soins du visage', 'Hydrothérapie et bains', 'Expériences de chaleur', 'Forfaits bieneness']);
+            $table->boolean('status');
             $table->timestamps();
         });
     }
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('spa_sessions');
+        Schema::dropIfExists('type_spa_sessions');
     }
 };

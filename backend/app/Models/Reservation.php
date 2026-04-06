@@ -9,9 +9,8 @@ class Reservation extends Model
      protected $filable = [
             'date_enter',
             'date_sortie',
-            'chamber',
             'prix',
-            'user_id',
+            'client_id',
             'chamber_id'
      ];
 
@@ -21,12 +20,12 @@ class Reservation extends Model
         return $this->belongsTo(Chamber::class);
      }
 
-     public function user(){
-        return $this->belongsTo(User::class)->where('role', 'client');
+     public function client(){
+        return $this->belongsTo(User::class, 'client_id')->where('role', 'client');
      }
 
-     public function paiment(){
-        return $this->belongsTo(Paiment::class);
+     public function paiments(){
+        return $this->hasOne(Paiment::class);
      }
 
 }

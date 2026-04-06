@@ -8,13 +8,13 @@ class Absences extends Model
 {
     protected $filable = [
         'workshit_id',
-        'user_id',
+        'staff_id',
         'is_justified',
         'pdf'
     ];
 
-    public function user(){
-        return $this->belongsTo(User::class)->where('role', 'staff');
+    public function staff(){
+        return $this->belongsTo(User::class, 'staff_id')->where('role', 'staff');
     }
 
     public function workshift(){

@@ -9,17 +9,18 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+
     public function up(): void
     {
-
-        Schema::create('commandes', function (Blueprint $table) {
+        Schema::create('spa_sessions', function (Blueprint $table) {
             $table->id();
-            $table->date('date');
+            $table->date('date_debut');
+            $table->date('date_fin');
             $table->float('prix');
+            $table->integer('type_spa_session_id');
+            $table->foreign('type_spa_session_id')->references('id')->on('type_spa_sessions');
             $table->integer('client_id');
             $table->foreign('client_id')->references('id')->on('users');
-            $table->integer('service_id');
-            $table->foreign('service_id')->references('id')->on('services');
             $table->timestamps();
         });
     }
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('commandes');
+        Schema::dropIfExists('spa_sessions');
     }
 };

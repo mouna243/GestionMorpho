@@ -28,8 +28,8 @@ return new class extends Migration
             $table->id();
             $table->integer('workshit_id');
             $table->foreign('workshit_id')->references('id')->on('workshits');
-            $table->integer('user_id');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->integer('staff_id');
+            $table->foreign('staff_id')->references('id')->on('users');
             $table->boolean('is_justified')->default(false);
             $table->string('pdf')->nullable();
             $table->timestamps();
