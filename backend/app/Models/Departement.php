@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class departement extends Model
+class Departement extends Model
 {
      protected $filable = [
         'name',
