@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('description');
             $table->boolean('is_available')->default('true');
             $table->integer('chamber_type_id');
-            $table->foreign('chamber_type_id')->references('id')->on('chamber_types');
+            $table->foreign('chamber_type_id')->references('id')->on('chamber_types')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -19,9 +19,9 @@ return new class extends Migration
             $table->integer('chamber');
             $table->float('prix');
             $table->integer('user_id');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->integer('chamber_id');
-            $table->foreign('chamber_id')->references('id')->on('chambers');
+            $table->foreign('chamber_id')->references('id')->on('chambers')->onDelete('cascade');
             $table->timestamps();
         });
     }

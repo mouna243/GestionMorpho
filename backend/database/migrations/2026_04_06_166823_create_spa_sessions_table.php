@@ -18,9 +18,9 @@ return new class extends Migration
             $table->date('date_fin');
             $table->float('prix');
             $table->integer('type_spa_session_id');
-            $table->foreign('type_spa_session_id')->references('id')->on('type_spa_sessions');
+            $table->foreign('type_spa_session_id')->references('id')->on('type_spa_sessions')->onDelete('cascade');
             $table->integer('client_id');
-            $table->foreign('client_id')->references('id')->on('users');
+            $table->foreign('client_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

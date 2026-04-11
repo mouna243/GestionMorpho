@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('description');
             $table->boolean('is_completed')->default(false);
             $table->integer('departement_id');
-            $table->foreign('departement_id')->references('id')->on('departements');
+            $table->foreign('departement_id')->references('id')->on('departements')->onDelete('cascade');
             $table->timestamps();
         });
     }

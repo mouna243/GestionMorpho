@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('commande_plat', function (Blueprint $table) {
             $table->id();
             $table->integer('commande_id');
-            $table->foreign('commande_id')->references('id')->on('commandes');
+            $table->foreign('commande_id')->references('id')->on('commandes')->onDelete('cascade');
             $table->integer('plat_id');
-            $table->foreign('plat_id')->references('id')->on('plats');
+            $table->foreign('plat_id')->references('id')->on('plats')->onDelete('cascade');
             $table->integer('quantite');
             $table->timestamps();
         });

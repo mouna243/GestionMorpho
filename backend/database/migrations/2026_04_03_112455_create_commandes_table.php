@@ -17,9 +17,9 @@ return new class extends Migration
             $table->date('date');
             $table->float('prix');
             $table->integer('client_id');
-            $table->foreign('client_id')->references('id')->on('users');
+            $table->foreign('client_id')->references('id')->on('users')->onDelete('cascade');
             $table->integer('service_id');
-            $table->foreign('service_id')->references('id')->on('services');
+            $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
             $table->timestamps();
         });
     }

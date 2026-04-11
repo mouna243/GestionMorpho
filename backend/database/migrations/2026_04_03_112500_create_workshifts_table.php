@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('workshifts', function (Blueprint $table) {
             $table->id();
             $table->integer('departement_id');
-            $table->foreign('departement_id')->references('id')->on('departements');
+            $table->foreign('departement_id')->references('id')->on('departements')->onDelete('cascade');
             $table->date('date_debut');
             $table->date('date_fin');
             $table->date('check_in');

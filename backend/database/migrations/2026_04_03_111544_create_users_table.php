@@ -22,7 +22,7 @@ return new class extends Migration
             $table->enum('role' , ['client' , 'admin' , 'staff'])->default("client");
             $table->string('salaire')->nullable();
             $table->integer('departement_id')->nullable();
-            $table->foreign('departement_id')->references('id')->on('departements');
+            $table->foreign('departement_id')->references('id')->on('departements')->onDelete('cascade');
             $table->string('experience')->nullable();
             $table->string('langage')->nullable();
             $table->string('password')->nullable();

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('date');
             $table->float('prix');
             $table->integer('reservation_id');
-            $table->foreign('reservation_id')->references('id')->on('reservations');
+            $table->foreign('reservation_id')->references('id')->on('reservations')->onDelete('cascade');
             $table->timestamps();
         });
     }

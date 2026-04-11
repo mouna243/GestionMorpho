@@ -27,9 +27,9 @@ return new class extends Migration
         Schema::create('absences', function (Blueprint $table) {
             $table->id();
             $table->integer('workshit_id');
-            $table->foreign('workshit_id')->references('id')->on('workshits');
+            $table->foreign('workshit_id')->references('id')->on('workshits')->onDelete('cascade');
             $table->integer('staff_id');
-            $table->foreign('staff_id')->references('id')->on('users');
+            $table->foreign('staff_id')->references('id')->on('users')->onDelete('cascade');
             $table->boolean('is_justified')->default(false);
             $table->string('pdf')->nullable();
             $table->timestamps();
