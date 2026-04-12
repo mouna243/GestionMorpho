@@ -69,7 +69,7 @@ class AdminController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request,User $user)
+    public function updateRH(Request $request,User $user)
     {
          $request->validate([
             'name' => 'required|string|max:255',
