@@ -14,10 +14,10 @@ class ChamberController extends Controller
      */
     public function index()
     {
-        $chambers = Chamber::all();
+        $chambers = Chamber::paginate(10);
         return response()->json([
             'data' => $chambers
-        ]);
+        ],200);
     }
 
     /**
@@ -29,7 +29,6 @@ class ChamberController extends Controller
             "name" => "required|string|max:255",
             "image" => "required|image|mimes:jpg,png,jpeg|max:2048",
             "description" => "required|string|max:500",
-            "is_available" => "required|boolean",
             "chamber_type_id" => "required",
         ]);
 
@@ -41,7 +40,6 @@ class ChamberController extends Controller
             "name" => $request->name,
             "image" => $path,
             "description" => $request->discription,
-            "is_available" => $request->is_available,
             "chamber_type_id" => $request->chamber_type_id
         ]);
 
@@ -50,7 +48,7 @@ class ChamberController extends Controller
                 "data" => $chamber,
                 "message" => "chamber created successfully",
                 "success" => true
-            ], 200);
+            ], 201);
         }
         return response()->json([
             "message" => "chamber create failed",
@@ -64,13 +62,13 @@ class ChamberController extends Controller
      */
     public function show(int $id)
     {
-        $chamber = Chamber::find($id);
+        $chamber = Chamber::with('chamber_type')->find($id);
 
         if ($chamber) {
             return response()->json([
                 'data' => $chamber,
                 'success' => true
-            ]);
+            ],200);
         }
         return response()->json([
             'success' => false
@@ -116,13 +114,13 @@ class ChamberController extends Controller
             return response()->json([
                 'message' => "chamber is not updated",
                 'success' => false
-            ], 400);
+            ], 200);
         }
 
         return response()->json([
             'message' => "chamber is updated",
             'success' => true
-        ], 200);
+        ], 400);
 
 
     }
@@ -140,7 +138,7 @@ class ChamberController extends Controller
             return response()->json([
                 'message' => "chamber is deleted successfuly",
                 'success' => true
-            ],200);
+            ],204);
         }
         return response()->json([
             'message' => "chamber is not deleted ",

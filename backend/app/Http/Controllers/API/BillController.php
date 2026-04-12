@@ -16,18 +16,13 @@ class BillController extends Controller
      */
     public function index()
     {
-        $bills = Bill::all();
-        if ($bills) {
-            return response()->json([
-                'data' => $bills,
-                "success" => true,
-                'message' => 'success'
-            ]);
-        }
+        $bills = Bill::paginate(10);
+        
         return response()->json([
-            'message' => 'bills not found',
-            'seccess' => false
-        ]);
+            'data' => $bills,
+            "success" => true,
+            'message' => 'success'
+        ],200);
     }
 
     /**
@@ -35,12 +30,8 @@ class BillController extends Controller
      */
     public function storeCommandeBill(Request $request, Commande $commande)
     {
-        $request->validate([
-            "montant" => 'required|float'
-        ]);
-
         $bill = $commande->bills()->create([
-            "montant" => $request->montant
+            "montant" => $commande->prix
         ]);
 
         if ($bill) {
@@ -48,22 +39,18 @@ class BillController extends Controller
                 'data' => $bill,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],201);
         }
         return response()->json([
             'message' => 'bill not created',
             'seccess' => false
-        ]);
+        ],401);
     }
 
     public function storeSpaSessionBill(Request $request, SpaSession $spaSession)
     {
-        $request->validate([
-            "montant" => 'required|float'
-        ]);
-
         $bill = $spaSession->bills()->create([
-            "montant" => $request->montant
+            "montant" => $spaSession->TypeSpaSession->prix
         ]);
 
         if ($bill) {
@@ -71,12 +58,12 @@ class BillController extends Controller
                 'data' => $bill,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],201);
         }
         return response()->json([
             'message' => 'bill not created',
             'seccess' => false
-        ]);
+        ],401);
     }
 
     /**
@@ -84,19 +71,19 @@ class BillController extends Controller
      */
     public function show(int $id)
     {
-        $bill = Bill::find($id);
+        $bill = Bill::with('billable')->find($id);
 
         if ($bill) {
             return response()->json([
                 'data' => $bill,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],200);
         }
         return response()->json([
             'message' => 'bill not found',
             'seccess' => false
-        ]);
+        ],404);
     }
 
 
@@ -111,11 +98,11 @@ class BillController extends Controller
             return response()->json([
                 'message' => 'bill is deleted',
                 'success' => true
-            ]);
+            ],204);
         }
         return response()->json([
             'message' => 'bill is not deleted',
             'success' => false
-        ]);
+        ],400);
     }
 }

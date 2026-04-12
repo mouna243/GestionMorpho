@@ -15,8 +15,8 @@ class User extends Model
             'role',
             'salaire',
             'departement_id',
-            'experience',
-            'langage',
+            'experiences',
+            'langages',
             'password',
      ];
      // reservations , spa_sessions, commandes , departements , absences

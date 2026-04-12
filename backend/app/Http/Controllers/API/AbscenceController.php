@@ -20,7 +20,7 @@ class AbscenceController extends Controller
             'data' => $absences,
             "success" => true,
             'message' => 'success'
-        ]);
+        ] ,200);
 
     }
 
@@ -44,12 +44,12 @@ class AbscenceController extends Controller
                 'data' => $absence,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],201);
         }
         return response()->json([
             'message' => 'absence not created',
             'seccess' => false
-        ]);
+        ], 401);
       
     }
 
@@ -65,12 +65,12 @@ class AbscenceController extends Controller
                 'data' => $absences_update,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],200);
         }
         return response()->json([
             'message' => 'absences not found',
             'seccess' => false
-        ]);
+        ], 404);
         
     }
 
@@ -113,19 +113,18 @@ class AbscenceController extends Controller
             'is_justified' => $request->is_justified,
             'pdf' => $path,
         ]);
-
         if ($is_updated) {
             return response()->json([
                 'data' => $absences,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],200);
         }
 
         return response()->json([
             'message' => 'absence not updated',
             'seccess' => false
-        ]);
+        ], 400);
     }
 
     /**
@@ -142,11 +141,11 @@ class AbscenceController extends Controller
             return response()->json([
                 'message' => 'absence is deleted',
                 'success' => true
-            ]);
+            ],204);
         }
         return response()->json([
             'message' => 'absence is not deleted',
             'success' => false
-        ]);
+        ],400);
     }
 }

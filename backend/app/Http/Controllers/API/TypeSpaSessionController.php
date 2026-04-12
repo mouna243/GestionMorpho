@@ -14,7 +14,7 @@ class TypeSpaSessionController extends Controller
     public function index()
     {
         //afficher tout les types de chambre
-        $typeSpaSessions = TypeSpaSession::all();
+        $typeSpaSessions = TypeSpaSession::paginate(10);
         return response()->json([
             "data" => $typeSpaSessions
         ], 200);
@@ -29,15 +29,13 @@ class TypeSpaSessionController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'discription' => 'required|string|max:500',
-            'prix' => 'required|float',
-            'is_available' => 'required|boolean',
+            'prix' => 'required|float'
         ]);
 
         $typeSpaSession = TypeSpaSession::create([
             'name' => $request->name,
             'discription' => $request->discription,
-            'prix' => $request->prix,
-            'is_available' => $request->is_available
+            'prix' => $request->prix
         ]);
         if (!$typeSpaSession) {
 
@@ -50,7 +48,7 @@ class TypeSpaSessionController extends Controller
             "data" => $typeSpaSession,
             "message" => "type spa session created successfully",
             "success" => true
-        ], 200);
+        ], 201);
     }
 
     /**
@@ -76,13 +74,13 @@ class TypeSpaSessionController extends Controller
             return response()->json([
                 "message" => " type spa session is updated ",
                 'success' => true
-            ]);
+            ],200);
         }
 
         return response()->json([
             "message" => " type spa session is not updated ",
             'success' => false
-        ]);
+        ],400);
 
     }
 
@@ -92,15 +90,15 @@ class TypeSpaSessionController extends Controller
     public function destroy(TypeSpaSession $typeSpaSession)
     {
         $is_deleted = $typeSpaSession->delete();
-        if (!$is_deleted) {
+        if ($is_deleted) {
             return response()->json([
                 'message' => " type spa session is deleted ",
                 'success' => true
-            ]);
+            ],204);
         }
         return response()->json([
             'message' => " type spa session is not deleted ",
             'success' => false
-        ]);
+        ],400);
     }
 }

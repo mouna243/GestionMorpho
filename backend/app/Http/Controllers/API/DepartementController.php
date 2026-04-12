@@ -13,19 +13,13 @@ class DepartementController extends Controller
      */
     public function index()
     {
-       $departements = Departement::all();
+       $departements = Departement::paginate(10);
 
-     if ($departements) {
-         return response()->json([
-             'data' => $departements,
-             "success" => true,
-             'message' => 'success'
-         ]);
-     }
-     return response()->json([
-         'message' => 'departements not found',
-         'seccess' => false
-     ]);
+        return response()->json([
+            'data' => $departements,
+            "success" => true,
+            'message' => 'success'
+        ],200);
     }
 
     /**
@@ -48,12 +42,12 @@ class DepartementController extends Controller
                 'data' => $departement,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],201);
         }
         return response()->json([
             'message' => 'departement not created',
             'seccess' => false
-        ]);
+        ],401);
     }
 
     /**
@@ -61,19 +55,19 @@ class DepartementController extends Controller
      */
     public function show(int $id)
     {
-        $dapartement = Departement::find($id);
+        $dapartement = Departement::with('staffs')->find($id);
 
         if ($dapartement) {
             return response()->json([
                 'data' => $dapartement,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],200);
         }
         return response()->json([
             'message' => 'departement not found',
             'seccess' => false
-        ]);
+        ],404);
 
     }
 
@@ -99,12 +93,12 @@ class DepartementController extends Controller
                 'data' => $departement,
                 "success" => true,
                 'message' => 'success'
-            ]);
+            ],200);
         }
         return response()->json([
             'message' => 'departement not updated',
             'seccess' => false
-        ]);
+        ],400);
     }
 
     /**
@@ -118,11 +112,11 @@ class DepartementController extends Controller
             return response()->json([
                 'message' => 'departement is deleted',
                 'success' => true
-            ]);
+            ],204);
         }
         return response()->json([
             'message' => 'departement is not deleted',
             'success' => false
-        ]);
+        ],400);
     }
 }

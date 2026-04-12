@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Paiment;
+use App\Models\Reservation;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -13,42 +14,35 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        $Paiments = Paiment::all();
+        $Paiments = Paiment::paginate(10);
 
         return response()->json([
             'data' => $Paiments
-        ]);
+        ],200);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store( Reservation $reservation)
     {
-        $request->validate([
-             'date'=>'required|date',
-            'prix' => 'required|float',
-            'reservation_id'=>'required|integer'
-        ]);
-
         $Paiment = Paiment::create([
-             'date' => $request->date,
-            'prix' => $request->prix,
-            'reservation_id' => $request->reservation_id
-            
+            'date' => now(),
+            'prix' => $reservation->prix,
+            'reservation_id' => $reservation->id
         ]);
 
         if ($Paiment) {
             return response()->json([
                 'data' => $Paiment,
                 'success' => true
-            ]);
+            ],201);
         }
 
         return response()->json([
             'message' => "Paiment not created",
             'success' => false
-        ]);
+        ],401);
     }
 
     /**
@@ -56,12 +50,12 @@ class PaymentController extends Controller
      */
     public function show(int $id)
     {
-        $Paiment = Paiment::find($id);
+        $Paiment = Paiment::with('reservation.chamber', 'reservation.client')->find($id);
         if ($Paiment) {
             return response()->json([
                 'data' => $Paiment,
                 'success' => true
-            ]);
+            ],200);
         }
 
         return response()->json([
@@ -81,11 +75,11 @@ class PaymentController extends Controller
             return response()->json([
                 'message' => 'Paiment is deleted',
                 'success' => true
-            ]);
+            ],204);
         }
         return response()->json([
             'message' => 'Paiment is not deleted',
             'success' => false
-        ]);
+        ],400);
     }
 }

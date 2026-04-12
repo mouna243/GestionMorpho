@@ -12,8 +12,7 @@ class SpaSession extends Model
         'client_id',
         'date_debut',
         'date_fin',
-        'prix',
-        'type',
+        'prix'
     ];
 
     public function service()

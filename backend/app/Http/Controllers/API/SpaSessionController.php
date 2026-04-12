@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\SpaSession;
+use App\Models\TypeSpaSession;
 use Illuminate\Http\Request;
 
 class SpaSessionController extends Controller
@@ -13,18 +14,14 @@ class SpaSessionController extends Controller
      */
     public function index()
     {
-        $spaSessions = SpaSession::all();
-        if ($spaSessions) {
-            return response()->json([
-                'data' => $spaSessions,
-                "success" => true,
-                'message' => 'success'
-            ]);
-        }
+        $spaSessions = SpaSession::paginate(10);
+
         return response()->json([
-            'message' => 'spaSessions not found',
-            'seccess' => false
-        ]);
+            'data' => $spaSessions,
+            "success" => true,
+            'message' => 'success'
+        ],200);
+        
     }
 
     /**
@@ -34,32 +31,31 @@ class SpaSessionController extends Controller
     {
         $request->validate([
             'type_spa_session_id' => 'required|integer',
-            'client_id'=>'required|integer',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date',
-            'prix'=>'required|float',
-            'type' => 'required|string',
         ]);
+
+        $type = TypeSpaSession::find($request->type_spa_session_id);
 
         $spaSession = SpaSession::create([
             'type_spa_session_id' => $request->type_spa_session_id,
-            'client_id'=>$request->client_id,
+            'client_id'=> auth()->user()->id,
             'date_debut' => $request->date_debut,
             'date_fin' => $request->date_fin,
-            'prix'=>$request->prix,
-            'type' => $request->type,
+            'prix'=> $type->prix ,
         ]);
+
         if ($spaSession) {
             return response()->json([
                 'data' => $spaSession,
                 'success' => true,
                 'message' => 'success'
-            ]);
+            ],201);
         }
         return response()->json([
             'message' => 'spaSession not created',
             'success' => false
-        ]);
+        ],401);
     }
 
     /**
@@ -67,12 +63,12 @@ class SpaSessionController extends Controller
      */
     public function show(int $id)
     {
-        $SpaSession = SpaSession::find($id);
+        $SpaSession = SpaSession::with('client', 'type_spa_session')->find($id);
         if ($SpaSession) {
             return response()->json([
                 'data' => $SpaSession,
                 'success' => true
-            ]);
+            ],200);
         }
 
         return response()->json([
@@ -88,17 +84,17 @@ class SpaSessionController extends Controller
     {
         $request->validate([
             'type_spa_session_id' => 'required|integer',
-            'client_id'=>'required|integer',
             'date_debut' => 'required|date',
-            'date_fin' => 'required|date',
-            'prix'=>'required|float',
+            'date_fin' => 'required|date'
         ]); 
+
+        $type = TypeSpaSession::find($request->type_spa_session_id);
+
         $spaSession->update([
             'type_spa_session_id' => $request->type_spa_session_id,
-            'client_id'=>$request->client_id,   
             'date_debut' => $request->date_debut,
             'date_fin' => $request->date_fin,
-            'prix'=>$request->prix,
+            'prix'=> $type->prix
         ]);
 
         if ($spaSession) {
@@ -106,12 +102,12 @@ class SpaSessionController extends Controller
                 'data' => $spaSession,
                 'success' => true,
                 'message' => 'success'
-            ]);
+            ],200);
         }
         return response()->json([
             'message' => 'spaSession not updated',
             'success' => false
-        ]);
+        ],400);
     }
 
     /**
@@ -124,11 +120,11 @@ class SpaSessionController extends Controller
             return response()->json([
                 'message' => 'spaSession is deleted',
                 'success' => true
-            ]);
+            ],204);
         }
         return response()->json([
             'message' => 'spaSession is not deleted',
             'success' => false
-        ]);
+        ],400);
     }
 }

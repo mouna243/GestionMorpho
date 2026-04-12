@@ -14,7 +14,7 @@ class ChamberTypeController extends Controller
     public function index()
     {
         //afficher tout les types de chambre
-        $chamberTypes = ChamberType::all();
+        $chamberTypes = ChamberType::paginate(10);
         return response()->json([
             "data" => $chamberTypes
         ], 200);
@@ -28,14 +28,12 @@ class ChamberTypeController extends Controller
     {
         $request->validate([
             "name" => 'required|string|max:255',
-            "discription" => 'required|string|max:500',
-            "is_available" => 'required|boolean',
+            "discription" => 'required|string|max:500'
         ]);
 
         $chamberType = ChamberType::create([
             'name' => $request->name,
-            'discription' => $request->discription,
-            'is_available' => $request->is_available
+            'discription' => $request->discription
         ]);
         if (!$chamberType) {
 
@@ -48,7 +46,7 @@ class ChamberTypeController extends Controller
             "data" => $chamberType,
             "message" => "chamber type created successfully",
             "success" => true
-        ], 200);
+        ], 201);
     }
 
     /**
@@ -72,13 +70,13 @@ class ChamberTypeController extends Controller
             return response()->json([
                 "message" => " type chamber is updated ",
                 'success' => true
-            ]);
+            ],200);
         }
 
         return response()->json([
             "message" => " type chamber is not updated ",
             'success' => false
-        ]);
+        ],400);
 
     }
 
@@ -88,15 +86,15 @@ class ChamberTypeController extends Controller
     public function destroy(ChamberType $chamberType)
     {
         $is_deleted = $chamberType->delete();
-        if (!$is_deleted) {
+        if ($is_deleted) {
             return response()->json([
                 'message' => " type chamber is deleted ",
                 'success' => true
-            ]);
+            ],204);
         }
         return response()->json([
             'message' => " type chamber is not deleted ",
             'success' => false
-        ]);
+        ],400);
     }
 }

@@ -14,10 +14,11 @@ class PlatController extends Controller
      */
     public function index()
     {
-        $plats = Plat::all();
+        $plats = Plat::paginate(10);
+
         return response()->json([
             'data' => $plats
-        ]);
+        ],200);
     }
 
     /**
@@ -46,7 +47,7 @@ class PlatController extends Controller
                 "data" => $plat,
                 "message" => "plat created successfully",
                 "success" => true
-            ], 200);
+            ], 201);
         }
         return response()->json([
             "message" => "plat create failed",
@@ -66,7 +67,7 @@ class PlatController extends Controller
             return response()->json([
                 'data' => $plat,
                 'success' => true
-            ]);
+            ],200);
         }
         return response()->json([
             'success' => false

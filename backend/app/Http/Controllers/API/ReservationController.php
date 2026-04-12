@@ -13,11 +13,11 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        $reservations = Reservation::all();
+        $reservations = Reservation::paginate(10);
 
         return response()->json([
             'data' => $reservations
-        ]);
+        ],200);
     }
 
     /**
@@ -44,13 +44,13 @@ class ReservationController extends Controller
             return response()->json([
                 'data' => $reservation,
                 'success' => true
-            ]);
+            ],201);
         }
 
         return response()->json([
             'message' => "reservation not created",
             'success' => false
-        ]);
+        ],401);
     }
 
     /**
@@ -58,12 +58,12 @@ class ReservationController extends Controller
      */
     public function show(int $id)
     {
-        $reservation = Reservation::find($id);
+        $reservation = Reservation::with('chamber', 'client')->find($id);
         if ($reservation) {
             return response()->json([
                 'data' => $reservation,
                 'success' => true
-            ]);
+            ],200);
         }
 
         return response()->json([
@@ -97,7 +97,7 @@ class ReservationController extends Controller
             return response()->json([
                 'message' => 'reservation is updated',
                 'success' => true
-            ]);
+            ],200);
         }
         return response()->json([
             'message' => 'reservation is not updated',
@@ -115,11 +115,11 @@ class ReservationController extends Controller
             return response()->json([
                 'message' => 'reservation is deleted',
                 'success' => true
-            ]);
+            ],204);
         }
         return response()->json([
             'message' => 'reservation is not deleted',
             'success' => false
-        ]);
+        ],400);
     }
 }
