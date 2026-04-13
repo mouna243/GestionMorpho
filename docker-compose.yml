@@ -11,6 +11,19 @@ services:
     depends_on:
       - postgres
 
+  vue:
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+    container_name: vue_app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - app
+
   nginx:
     image: nginx:alpine
     container_name: nginx_app
@@ -27,7 +40,7 @@ services:
     container_name: postgres
     restart: always
     environment: 
-      POSTGRES_DB: easycoloc
+      POSTGRES_DB: morpho
       POSTGRES_USER: mouna
       POSTGRES_PASSWORD: mouna
     ports:
