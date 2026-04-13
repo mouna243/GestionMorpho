@@ -80,7 +80,7 @@ Route::middleware(['auth:sanctum', 'role:staff', 'departement:RH'])->group(funct
 
 
 /* Chef personnel Routes */
-Route::middleware(['auth:sanctum', 'role:staff', 'departement:Chef Personnel'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:staff', 'departement:ChefPersonnel'])->group(function () {
 
     /* Gestion des tasks */
     Route::apiResource('tasks', TaskController::class);
