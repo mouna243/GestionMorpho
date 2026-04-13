@@ -26,8 +26,8 @@ return new class extends Migration
 
         Schema::create('absences', function (Blueprint $table) {
             $table->id();
-            $table->integer('workshit_id');
-            $table->foreign('workshit_id')->references('id')->on('workshits')->onDelete('cascade');
+            $table->integer('workshift_id');
+            $table->foreign('workshift_id')->references('id')->on('workshifts')->onDelete('cascade');
             $table->integer('staff_id');
             $table->foreign('staff_id')->references('id')->on('users')->onDelete('cascade');
             $table->boolean('is_justified')->default(false);

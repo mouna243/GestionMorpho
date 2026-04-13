@@ -30,12 +30,12 @@ class AbscenceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'workshit_id' => 'required|integer',
+            'workshift_id' => 'required|integer',
             'staff_id' => 'required|integer'
         ]);
 
         $absence = Absences::create([
-            'workshit_id' => $request->workshit_id,
+            'workshift_id' => $request->workshift_id,
             'staff_id' => $request->staff_id
         ]);
 
@@ -58,7 +58,7 @@ class AbscenceController extends Controller
      */
     public function show(int $id)
     {
-        $absences_update = Absences::with('staff', 'workshit.departement')->find($id);
+        $absences_update = Absences::with('staff', 'workshift.departement')->find($id);
 
         if ($absences_update) {
             return response()->json([
@@ -81,7 +81,7 @@ class AbscenceController extends Controller
     {
         
         $request->validate([
-            'workshit_id' => 'required|integer',
+            'workshift_id' => 'required|integer',
             'staff_id' => 'required|integer',
             'is_justified' => 'required|boolean',
             'pdf' => [
@@ -108,7 +108,7 @@ class AbscenceController extends Controller
         }
 
         $is_updated = $absences->update([
-            'workshit_id' => $request->workshit_id,
+            'workshift_id' => $request->workshift_id,
             'staff_id' => $request->staff_id,
             'is_justified' => $request->is_justified,
             'pdf' => $path,
