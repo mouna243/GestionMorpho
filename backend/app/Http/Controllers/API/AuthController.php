@@ -36,6 +36,7 @@ class AuthController
         if($user){
             return response()->json(
                 [
+                    "data" => $user,
                     "success" => true,
                     'message' => 'user created successfully'
                 ]

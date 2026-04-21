@@ -18,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
             "role" => Role::class,
             "departement" => Departement::class
         ]);
+
+           // Add CORS handling
+        $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+            \App\Http\Middleware\Cors::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
