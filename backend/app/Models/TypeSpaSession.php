@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TypeSpaSession extends Model
 {
-    protected $filable =[
+    protected $fillable =[
         'name',
         'discription',
         'prix',

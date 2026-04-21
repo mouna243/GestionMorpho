@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Workshift extends Model
 {
-     protected $filable = [
+     protected $fillable = [
             'departement_id',
             'date_debut',
             'date_fin',

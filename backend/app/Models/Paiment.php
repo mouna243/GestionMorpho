@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class paiment extends Model
 {
-     protected $filable = [
+     protected $fillable = [
             'date',
             'prix',
             'reservation_id'

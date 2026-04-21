@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Plat extends Model
 {
-    protected $filable = [
+    protected $fillable = [
         'name',
         'image',
         'discription',

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Commande extends Model
 {
-     protected $filable = [
+     protected $fillable = [
             'date',
             'prix',
             'client_id',

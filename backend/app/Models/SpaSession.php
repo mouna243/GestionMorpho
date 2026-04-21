@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class SpaSession extends Model
 {
 
-    protected $filable = [
+    protected $fillable = [
         'type_spa_session_id',
         'client_id',
         'date_debut',

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Departement extends Model
 {
-     protected $filable = [
+     protected $fillable = [
         'name',
         'description',
         'is_active'

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ChamberType extends Model
 {
-     protected $filable = [
+     protected $fillable = [
             'name',
             'description',
             'is_available',

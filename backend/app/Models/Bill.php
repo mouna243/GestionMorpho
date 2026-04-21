@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Bill extends Model
 {
-    protected $filable = [
+    protected $fillable = [
         "billable_id",
         "billable_type",
         "montant",
