@@ -79,13 +79,13 @@ class DepartementController extends Controller
         $request->validate([
             'name'=>'required|string|max:255',
             'description'=>'required|string|max:500',
-            'is_available'=>'required|boolean',
+            'is_active'=>'required|boolean',
         ]);
 
         $is_updated = $departement->update([
             'name'=>$request->name,
             'description'=>$request->description,
-            'is_available'=>$request->is_available
+            'is_active'=>$request->is_active
         ]);
 
         if ($is_updated) {
