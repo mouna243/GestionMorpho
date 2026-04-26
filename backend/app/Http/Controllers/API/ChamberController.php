@@ -29,6 +29,7 @@ class ChamberController extends Controller
             "name" => "required|string|max:255",
             "image" => "required|image|mimes:jpg,png,jpeg|max:2048",
             "description" => "required|string|max:500",
+            "is_available" => "required",
             "chamber_type_id" => "required",
         ]);
 
@@ -40,6 +41,7 @@ class ChamberController extends Controller
             "name" => $request->name,
             "image" => $path,
             "description" => $request->description,
+            "is_available" => $request->is_available,
             "chamber_type_id" => $request->chamber_type_id
         ]);
 
