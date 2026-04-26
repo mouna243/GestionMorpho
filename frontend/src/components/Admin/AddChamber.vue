@@ -188,23 +188,22 @@ const editType = async () => {
     }
 }
 
+
 const editChamber = async () => {
     error.value = null
     loading.value = true
     const formData = new FormData();
 
+    formData.append('_method', 'PATCH');
     formData.append('name', dataEditChamber.name);
     formData.append('image', dataEditChamber.image);
     formData.append('description', dataEditChamber.description);
     formData.append('is_available', dataEditChamber.is_available ? 1 : 0);
     formData.append("chamber_type_id", dataEditChamber.chamber_type_id)
-    for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-    }
 
     try {
         const response = await fetch(`http://localhost:8080/api/chambers/${currentChamber.value}`, {
-            method: 'PATCH',
+            method: 'POST',
             body: formData,
             headers: {
                 'Accept': 'application/json'
@@ -378,7 +377,7 @@ const editChamber = async () => {
                                     </div>
                                 </div>
                                 <div class="mt-4">
-                                    <button @click="addChamberForm = true; currentType = type.id"
+                                    <button @click="addChamberForm = true; currentType.value = type.id"
                                         class="text-sm bg-[#6b38d4] text-white px-4 py-2 rounded-lg hover:bg-[#8455ef] transition-all flex items-center gap-2">
                                         <span class="material-symbols-outlined text-base">add</span>
                                         Ajouter une chambre
