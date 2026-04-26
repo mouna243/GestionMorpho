@@ -17,7 +17,7 @@ const editDeptErrors = ref({});
 // ── RH / Staff ────────────────────────────────────────────
 const showRHModal = ref(false);
 const rhModalMode = ref('add'); // 'add' | 'edit'
-const rhForm = ref({ name: '', email: '', password: '', password_confirmation: '', telephon: '', CIN: '', age: '', salaire: '', departement_id: '' });
+const rhForm = ref({ name: '', email: '', password: '', password_confirmation: '', telephon: '', CIN: '', age: '', salaire: '', departement_id: '', experiences: [], langages: [] });
 const rhErrors = ref({});
 const rhSuccess = ref('');
 const editRHId = ref(null);
@@ -90,7 +90,7 @@ async function deleteDepartement(id) {
 // ── RH / Staff CRUD ───────────────────────────────────────
 function openAddRH() {
     rhModalMode.value = 'add';
-    rhForm.value = { name: '', email: '', password: '', password_confirmation: '', telephon: '', CIN: '', age: '', salaire: '', departement_id: '' };
+    rhForm.value = { name: '', email: '', password: '', password_confirmation: '', telephon: '', CIN: '', age: '', salaire: '', departement_id: '', experiences: [], langages: [] };
     rhErrors.value = {};
     rhSuccess.value = '';
     showRHModal.value = true;
@@ -99,7 +99,7 @@ function openAddRH() {
 function openEditRH(staff) {
     rhModalMode.value = 'edit';
     editRHId.value = staff.id;
-    rhForm.value = { name: staff.name, email: staff.email, password: '', password_confirmation: '', telephon: staff.telephon, CIN: staff.CIN, age: staff.age, salaire: staff.salaire, departement_id: staff.departement_id };
+    rhForm.value = { name: staff.name, email: staff.email, password: '', password_confirmation: '', telephon: staff.telephon, CIN: staff.CIN, age: staff.age, salaire: staff.salaire, departement_id: staff.departement_id, experiences: staff.experiences ?? [], langages: staff.langages ?? [] };
     rhErrors.value = {};
     rhSuccess.value = '';
     showRHModal.value = true;
@@ -589,6 +589,66 @@ onMounted(fetchDepartements);
                     </select>
                     <p v-if="rhErrors.departement_id" class="text-red-500 text-xs">{{ rhErrors.departement_id[0] }}</p>
                 </div>
+                <!-- Expériences -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="font-semibold text-xs text-slate-700">Expériences</label>
+                        <button type="button" @click="rhForm.experiences.push({ title: '', description: '', date_debut: '', date_fin: '', entreprise: '' })"
+                            class="text-xs text-[#6b38d4] hover:underline flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">add</span> Ajouter
+                        </button>
+                    </div>
+                    <div v-for="(exp, i) in rhForm.experiences" :key="i" class="p-3 border border-slate-200 rounded-lg space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input v-model="exp.title" type="text" placeholder="Titre"
+                                class="w-full border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-[#6b38d4]/20 outline-none text-xs" />
+                            <input v-model="exp.entreprise" type="text" placeholder="Entreprise"
+                                class="w-full border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-[#6b38d4]/20 outline-none text-xs" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input v-model="exp.date_debut" type="date"
+                                class="w-full border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-[#6b38d4]/20 outline-none text-xs" />
+                            <input v-model="exp.date_fin" type="date"
+                                class="w-full border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-[#6b38d4]/20 outline-none text-xs" />
+                        </div>
+                        <div class="flex gap-2">
+                            <input v-model="exp.description" type="text" placeholder="Description"
+                                class="flex-1 border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-[#6b38d4]/20 outline-none text-xs" />
+                            <button type="button" @click="rhForm.experiences.splice(i, 1)"
+                                class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Langages -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="font-semibold text-xs text-slate-700">Langages</label>
+                        <button type="button" @click="rhForm.langages.push({ name: '', level: '' })"
+                            class="text-xs text-[#6b38d4] hover:underline flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">add</span> Ajouter
+                        </button>
+                    </div>
+                    <div v-for="(lang, i) in rhForm.langages" :key="i" class="flex gap-2 items-center">
+                        <input v-model="lang.name" type="text" placeholder="Langage (ex: Français)"
+                            class="flex-1 border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-[#6b38d4]/20 outline-none text-xs" />
+                        <select v-model="lang.level"
+                            class="border border-slate-200 rounded-lg py-2 px-3 focus:ring-2 focus:ring-[#6b38d4]/20 outline-none text-xs">
+                            <option value="" disabled>Niveau</option>
+                            <option value="Débutant">Débutant</option>
+                            <option value="Intermédiaire">Intermédiaire</option>
+                            <option value="Avancé">Avancé</option>
+                            <option value="Natif">Natif</option>
+                        </select>
+                        <button type="button" @click="rhForm.langages.splice(i, 1)"
+                            class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="flex gap-3 pt-2">
                     <button type="button" @click="showRHModal = false"
                         class="flex-1 py-3 rounded-xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all text-sm">Annuler</button>
