@@ -84,11 +84,11 @@ class PlatController extends Controller
     public function update(Request $request, Plat $plat)
     {
         $request->validate([
-         'name' => 'required|string|max:255|unique:plats',
-            'image' => 'required|image|mimes:jpg,png,jpeg|max:2048',
+            'name' => 'required|string|max:255|unique:plats,name,' . $plat->id,
+            'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
             'description' => 'required|string|max:500',
             'prix' => 'required|numeric',
-            'is_available' => 'required|boolean'
+            'is_available' => 'required'
         ]);
 
 
