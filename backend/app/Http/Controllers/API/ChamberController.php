@@ -14,7 +14,7 @@ class ChamberController extends Controller
      */
     public function index()
     {
-        $chambers = Chamber::paginate(10);
+        $chambers = Chamber::with('chamber_type')->paginate(10);
         return response()->json([
             'data' => $chambers
         ],200);
@@ -39,7 +39,7 @@ class ChamberController extends Controller
         $chamber = Chamber::create([
             "name" => $request->name,
             "image" => $path,
-            "description" => $request->discription,
+            "description" => $request->description,
             "chamber_type_id" => $request->chamber_type_id
         ]);
 
@@ -105,7 +105,7 @@ class ChamberController extends Controller
         $is_updated = $chamber->update([
             "name" => $request->name,
             "image" => $path,
-            "description" => $request->discription,
+            "description" => $request->description,
             "is_available" => $request->is_available,
             "chamber_type_id" => $request->chamber_type_id
         ]);
