@@ -1,337 +1,353 @@
+<script setup>
+import { ref, onMounted } from 'vue';
+
+const API = 'http://localhost:8080/api/plats';
+
+const plats = ref([]);
+const totalPlats = ref(0);
+const displayEditForm = ref(false);
+const currentPlatId = ref(null);
+const deleteConfirmId = ref(null);
+
+const newPlat = ref({ name: '', description: '', prix: '', image: null });
+const editPlat = ref({ name: '', description: '', prix: '', is_available: true, image: null });
+const errors = ref({});
+
+async function fetchPlats() {
+    const res = await fetch(API);
+    const json = await res.json();
+    plats.value = json.data.data ?? json.data;
+    totalPlats.value = json.data.total ?? plats.value.length;
+}
+
+async function addPlat(e) {
+    e.preventDefault();
+    errors.value = {};
+    const fd = new FormData();
+    fd.append('name', newPlat.value.name);
+    fd.append('description', newPlat.value.description);
+    fd.append('prix', newPlat.value.prix);
+    if (newPlat.value.image) fd.append('image', newPlat.value.image);
+
+    const res = await fetch(API, { method: 'POST', body: fd });
+    const json = await res.json();
+    if (!res.ok) { errors.value = json.errors ?? {}; return; }
+    plats.value.unshift(json.data);
+    totalPlats.value++;
+    newPlat.value = { name: '', description: '', prix: '', image: null };
+    e.target.reset();
+}
+
+function openEdit(plat) {
+    currentPlatId.value = plat.id;
+    editPlat.value = { name: plat.name, description: plat.description, prix: plat.prix, is_available: plat.is_available, image: null };
+    errors.value = {};
+    displayEditForm.value = true;
+}
+
+async function updatePlat(e) {
+    e.preventDefault();
+    errors.value = {};
+    const fd = new FormData();
+    fd.append('_method', 'PATCH');
+    fd.append('name', editPlat.value.name);
+    fd.append('description', editPlat.value.description);
+    fd.append('prix', editPlat.value.prix);
+    fd.append('is_available', editPlat.value.is_available ? 1 : 0);
+    if (editPlat.value.image) fd.append('image', editPlat.value.image);
+
+    const res = await fetch(`${API}/${currentPlatId.value}`, { method: 'POST', body: fd });
+    const json = await res.json();
+    if (!res.ok) { errors.value = json.errors ?? {}; return; }
+    const idx = plats.value.findIndex(p => p.id === currentPlatId.value);
+    if (idx !== -1) plats.value[idx] = { ...plats.value[idx], ...editPlat.value };
+    displayEditForm.value = false;
+}
+
+async function deletePlat(id) {
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+        plats.value = plats.value.filter(p => p.id !== id);
+        totalPlats.value--;
+        deleteConfirmId.value = null;
+        if (currentPlatId.value === id) displayEditForm.value = false;
+    }
+}
+
+onMounted(fetchPlats);
+</script>
+
 <template>
     <div class="bg-background text-on-surface">
 
-    <!-- SideNavBar -->
-    <aside
-        class="fixed left-0 top-0 h-full w-[260px] bg-violet-600 dark:bg-violet-900 shadow-2xl flex flex-col py-6 z-50">
-        <div class="px-6 mb-10">
-            <h1 class="text-2xl font-black text-white font-plus-jakarta">Morpho Gestion</h1>
-            <p class="text-violet-200 text-xs font-semibold uppercase tracking-widest mt-1">Administration</p>
-        </div>
-        <nav class="flex-1 space-y-2">
-            <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                href="#">
-                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
-                <span><router-link to="/admin/dashboard">Dashboard</router-link></span>
-            </a>
-            <a class="bg-white text-violet-600 rounded-full px-4 py-2 mx-2 flex items-center gap-3 transition-all font-plus-jakarta text-sm font-semibold"
-                href="#">
-                <span class="material-symbols-outlined" data-icon="restaurant_menu"
-                    style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
-                <span><router-link to="/admin/plats">Gestion des plats</router-link></span>
-            </a>
-            <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                href="#">
-                <span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-                <span><router-link to="/admin/departements">Gestion Départements</router-link></span>
-            </a>
-            <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                href="#">
-                <span class="material-symbols-outlined">calendar_clock</span>
-                <span><router-link to="/admin/WorkShift">Gestion des WorkShifts</router-link></span>
-            </a>
-                        <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                href="#">
-                <span class="material-symbols-outlined">king_bed</span>
-                <span><router-link to="/admin/chambers">Gestion des Chambers</router-link></span>
-            </a>
-        </nav>
-        <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
-
-            <div class="space-y-1">
-                <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                    href="#">
-                    <span class="material-symbols-outlined" data-icon="help">help</span>
-                    <span>Aide</span>
-                </a>
-                <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                    href="#">
-                    <span class="material-symbols-outlined" data-icon="logout">logout</span>
-                    <span>Déconnexion</span>
-                </a>
+        <!-- SideNavBar -->
+        <aside class="fixed left-0 top-0 h-full w-[260px] bg-violet-600 dark:bg-violet-900 shadow-2xl flex flex-col py-6 z-50">
+            <div class="px-6 mb-10">
+                <h1 class="text-2xl font-black text-white font-plus-jakarta">Morpho Gestion</h1>
+                <p class="text-violet-200 text-xs font-semibold uppercase tracking-widest mt-1">Administration</p>
             </div>
-        </div>
-    </aside>
+            <nav class="flex-1 space-y-2">
+                <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span><router-link to="/admin/dashboard">Dashboard</router-link></span>
+                </a>
+                <a class="bg-white text-violet-600 rounded-full px-4 py-2 mx-2 flex items-center gap-3 transition-all font-plus-jakarta text-sm font-semibold" href="#">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+                    <span><router-link to="/admin/plats">Gestion des plats</router-link></span>
+                </a>
+                <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    <span><router-link to="/admin/departements">Gestion Départements</router-link></span>
+                </a>
+                <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
+                    <span class="material-symbols-outlined">calendar_clock</span>
+                    <span><router-link to="/admin/WorkShift">Gestion des WorkShifts</router-link></span>
+                </a>
+                <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
+                    <span class="material-symbols-outlined">king_bed</span>
+                    <span><router-link to="/admin/chambers">Gestion des Chambers</router-link></span>
+                </a>
+            </nav>
+            <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
+                <div class="space-y-1">
+                    <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
+                        <span class="material-symbols-outlined">help</span>
+                        <span>Aide</span>
+                    </a>
+                    <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
+                        <span class="material-symbols-outlined">logout</span>
+                        <span>Déconnexion</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
 
-        <!-- Main Content Area -->
+        <!-- Main Content -->
         <main class="ml-[260px] min-h-screen">
             <!-- TopAppBar -->
-            <header
-                class="sticky top-0 z-40 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 shadow-sm flex justify-between items-center px-8 py-4">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white font-plus-jakarta">Gestion des Plats</h2>
-                <div class="flex items-center gap-6">
-                    <div class="relative group">
-                        <span
-                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-600">search</span>
-                        <input
-                            class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-violet-500 transition-all outline-none"
-                            placeholder="Rechercher un plat..." type="text" />
+            <header class="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm flex justify-between items-center px-8 py-4">
+                <h2 class="text-xl font-bold text-gray-900 font-plus-jakarta">Gestion des Plats</h2>
+                <div class="flex items-center gap-4 border-l pl-6 border-gray-200">
+                    <div class="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
+                        <span class="material-symbols-outlined">account_circle</span>
                     </div>
-                    <div class="flex items-center gap-4 border-l pl-6 border-gray-200">
-                        <button class="relative text-gray-500 hover:text-violet-600 transition-colors">
-                            <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-                            <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
-                        </button>
-                        <div class="flex items-center gap-2 cursor-pointer group">
-                            <div
-                                class="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
-                                <span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
-                            </div>
-                            <span
-                                class="text-sm font-bold text-gray-700 group-hover:text-violet-600 transition-colors">Admin</span>
-                        </div>
-                    </div>
+                    <span class="text-sm font-bold text-gray-700">Admin</span>
                 </div>
             </header>
+
             <!-- Canvas -->
             <div class="p-8">
                 <div class="grid grid-cols-12 gap-8">
-                    <!-- Plate Gallery Section -->
+
+                    <!-- Plate Gallery -->
                     <section class="col-span-12 lg:col-span-8">
                         <div class="flex items-center justify-between mb-6">
                             <div>
-                                <h3 class="font-headline-lg text-headline-lg text-on-surface">Galerie des Plats</h3>
-                                <p class="font-body-sm text-body-sm text-on-surface-variant">Visualisez et gérez votre
-                                    menu actuel</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button
-                                    class="p-2 rounded-lg bg-white shadow-sm border border-gray-100 text-violet-600">
-                                    <span class="material-symbols-outlined">grid_view</span>
-                                </button>
-                                <button class="p-2 rounded-lg bg-white shadow-sm border border-gray-100 text-gray-400">
-                                    <span class="material-symbols-outlined">list</span>
-                                </button>
+                                <h3 class="font-bold text-xl text-gray-800">Galerie des Plats</h3>
+                                <p class="text-sm text-gray-500">Visualisez et gérez votre menu actuel</p>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Plate Card 1 -->
-                            <div
-                                class="bg-surface-container-lowest rounded-xl shadow-md hover:shadow-xl transition-all group overflow-hidden border border-white">
+                            <div v-for="plat in plats" :key="plat.id"
+                                class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all group overflow-hidden border border-gray-100">
                                 <div class="h-48 overflow-hidden relative">
                                     <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        data-alt="Gourmet wagyu beef burger with melted cheddar, caramelized onions, and fresh arugula on a toasted brioche bun, professional food photography"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5Wwq243iJurSYmOb2-E4NK9GwtT8nilIeJoM8Nbl5aay3tKZLYQb1_-zWSqeEAWzb3uDrjSOZGzHBeLBiMiVtPdruOVg8BKNargqUm1GsHg5jDPP729ryReCNOF6fDhVNza5Nui06luOQhORxjdn7V95SlfiGrjpQxnbYJrocmof37_mz_ebf42h4_g5ggUwjFW5-fLQ0ubC15c-8Sjzm_o6Qvn65NXOlUZ9ECDK2sP_eW5wUsuwC-pgqC-wtF1C_ARoq0UVX0C0" />
-                                    <span
-                                        class="absolute top-3 right-3 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Best
-                                        Seller</span>
+                                        :src="plat.image ? `http://localhost:8080/storage/${plat.image}` : 'https://via.placeholder.com/400x200?text=Plat'"
+                                        :alt="plat.name" />
+                                    <span v-if="!plat.is_available"
+                                        class="absolute top-3 left-3 bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                                        Indisponible
+                                    </span>
                                 </div>
                                 <div class="p-5">
                                     <div class="flex justify-between items-start mb-2">
-                                        <h4 class="font-bold text-lg text-on-surface">Burger Wagyu Signature</h4>
-                                        <span class="text-violet-600 font-extrabold">24.50 €</span>
+                                        <h4 class="font-bold text-lg text-gray-800">{{ plat.name }}</h4>
+                                        <span class="text-violet-600 font-extrabold">{{ plat.prix }} €</span>
                                     </div>
-                                    <span
-                                        class="bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold px-2 py-0.5 rounded-md uppercase">Premium
-                                        Burgers</span>
-                                    <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                                        <div class="flex gap-1">
-                                            <span class="material-symbols-outlined text-yellow-500 text-sm"
-                                                style="font-variation-settings: 'FILL' 1;">star</span>
-                                            <span class="text-xs font-bold text-gray-600">4.9 (128)</span>
-                                        </div>
-                                        <button
+                                    <p class="text-sm text-gray-500 line-clamp-2">{{ plat.description }}</p>
+                                    <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end items-center gap-2">
+                                        <button @click="openEdit(plat)"
                                             class="text-violet-600 hover:bg-violet-50 p-2 rounded-full transition-colors">
                                             <span class="material-symbols-outlined">edit</span>
                                         </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Plate Card 2 -->
-                            <div
-                                class="bg-surface-container-lowest rounded-xl shadow-md hover:shadow-xl transition-all group overflow-hidden border border-white">
-                                <div class="h-48 overflow-hidden relative">
-                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        data-alt="Vibrant mediterranean poke bowl with fresh tuna, avocado, edamame, and pickled ginger, bright natural studio lighting"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaw2XOl2CZsxl4MAi34jChKMBOAHAaoNizs4nmD9KB2Egb9p02EMH7zN_LdvytFOFCJ_n90gXfRKHZ9ke6XN4fgBAFzjOydVbz7jPVSJWoy9xIpxW5V_cjV22CGUVPyNtSzI0CH1jeSMzqvaIAFDjsTeyPNaa48pgORS1cZb5R5oVa5GExn322JkR64bP__fo20-8FI0FQdaF6KImltbTeAeEbi-Iyv3bc0D9eUJIvUfZq7JuQ7EBq3DRF74RkeeHwMhE4RrV-trw" />
-                                    <span
-                                        class="absolute top-3 right-3 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Healthy</span>
-                                </div>
-                                <div class="p-5">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <h4 class="font-bold text-lg text-on-surface">Bowl Thon Mariné</h4>
-                                        <span class="text-violet-600 font-extrabold">18.00 €</span>
-                                    </div>
-                                    <span
-                                        class="bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold px-2 py-0.5 rounded-md uppercase">Healthy
-                                        Bowls</span>
-                                    <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                                        <div class="flex gap-1">
-                                            <span class="material-symbols-outlined text-yellow-500 text-sm"
-                                                style="font-variation-settings: 'FILL' 1;">star</span>
-                                            <span class="text-xs font-bold text-gray-600">4.7 (85)</span>
-                                        </div>
-                                        <button
-                                            class="text-violet-600 hover:bg-violet-50 p-2 rounded-full transition-colors">
-                                            <span class="material-symbols-outlined">edit</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Plate Card 3 -->
-                            <div
-                                class="bg-surface-container-lowest rounded-xl shadow-md hover:shadow-xl transition-all group overflow-hidden border border-white">
-                                <div class="h-48 overflow-hidden relative">
-                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        data-alt="Traditional wood-fired Neapolitan pizza with buffalo mozzarella, fresh basil leaves, and vibrant tomato sauce, rustic kitchen setting"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr3LdaTcY1Gv6euA4EPDC7L4yAmnW34a1Dp1q6aUi3n2jjztbd3efBoOlrLSM8oNgw93CrfZ5CGkggfZyez5xfC1YT3FrYqZDFl3zUbQa9afyxrU9cuzuOBaiy3CoiX9N0JvjEJ8BK7c2y9PNot6Ld-oUUo6G48e0Qt0i0VrSiTycnnjoqUH9Lo0AsWJt-EuHvS9Zb5E994fBZ54gcAuADbqAOneJFpP3ttFJwzWoGG80MjDnsVjHSZmh4IXKnW5nPDJ0InJVwgwY" />
-                                </div>
-                                <div class="p-5">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <h4 class="font-bold text-lg text-on-surface">Pizza Buffalo</h4>
-                                        <span class="text-violet-600 font-extrabold">16.50 €</span>
-                                    </div>
-                                    <span
-                                        class="bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold px-2 py-0.5 rounded-md uppercase">Italien</span>
-                                    <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                                        <div class="flex gap-1">
-                                            <span class="material-symbols-outlined text-yellow-500 text-sm"
-                                                style="font-variation-settings: 'FILL' 1;">star</span>
-                                            <span class="text-xs font-bold text-gray-600">4.8 (210)</span>
-                                        </div>
-                                        <button
-                                            class="text-violet-600 hover:bg-violet-50 p-2 rounded-full transition-colors">
-                                            <span class="material-symbols-outlined">edit</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Plate Card 4 -->
-                            <div
-                                class="bg-surface-container-lowest rounded-xl shadow-md hover:shadow-xl transition-all group overflow-hidden border border-white">
-                                <div class="h-48 overflow-hidden relative">
-                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        data-alt="Delicate matcha green tea mille crepe cake with light cream layers, elegant minimalist dessert presentation on a white plate"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcwhEssm-WTBs6IPkk0FZZexIY4OPX64VP5BlUOHuDm8RHUjgJ8VfzXI5hQNPF2C_xzRCueftPEY88KgvmPtwfzFbAh-uqVbjTslUEDRkTqZBEMfrQYvSih_611-uMOud8bjzN9TwGlRlNeB0TzQ0jJRpMtkyNyWGKpbCfkLLcacEFQE92npNAIykJaCmAzzdiE6I4XB8MGw3iGcmofi0vIeHpgQWZ2zav_xBLI0V927uk4v8pQgVMDiYSFEyE6HXoqMU1QGLfxw8" />
-                                    <span
-                                        class="absolute top-3 right-3 bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Chef's
-                                        Pick</span>
-                                </div>
-                                <div class="p-5">
-                                    <div class="flex justify-between items-start mb-2">
-                                        <h4 class="font-bold text-lg text-on-surface">Mille-Feuille Matcha</h4>
-                                        <span class="text-violet-600 font-extrabold">12.00 €</span>
-                                    </div>
-                                    <span
-                                        class="bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold px-2 py-0.5 rounded-md uppercase">Desserts</span>
-                                    <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                                        <div class="flex gap-1">
-                                            <span class="material-symbols-outlined text-yellow-500 text-sm"
-                                                style="font-variation-settings: 'FILL' 1;">star</span>
-                                            <span class="text-xs font-bold text-gray-600">5.0 (42)</span>
-                                        </div>
-                                        <button
-                                            class="text-violet-600 hover:bg-violet-50 p-2 rounded-full transition-colors">
-                                            <span class="material-symbols-outlined">edit</span>
+                                        <button @click="deleteConfirmId = plat.id"
+                                            class="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                                            <span class="material-symbols-outlined">delete</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </section>
-                    <!-- Add New Plate Form Section -->
+
+                    <!-- Add Form -->
                     <aside class="col-span-12 lg:col-span-4">
                         <div class="sticky top-24 bg-white rounded-2xl shadow-2xl p-6 border border-violet-50">
-                            <div class="flex items-center gap-3 mb-8">
-                                <div
-                                    class="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-violet-200">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-violet-200">
                                     <span class="material-symbols-outlined">add_circle</span>
                                 </div>
                                 <div>
-                                    <h3 class="font-headline-lg text-headline-lg text-on-surface leading-tight">Nouveau
-                                        Plat</h3>
-                                    <p class="text-xs text-gray-500 font-medium">Ajouter à la carte</p>
+                                    <h3 class="font-bold text-lg text-gray-800">Nouveau Plat</h3>
+                                    <p class="text-xs text-gray-500">Ajouter à la carte</p>
                                 </div>
                             </div>
-                            <form class="space-y-5">
+                            <form @submit="addPlat" class="space-y-4">
                                 <div class="space-y-1.5">
-                                    <label class="text-sm font-bold text-gray-700 ml-1">Nom du Plat</label>
-                                    <input
-                                        class="w-full px-4 py-3 bg-surface-container-low border border-gray-100 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all outline-none"
+                                    <label class="text-sm font-bold text-gray-700">Nom du Plat</label>
+                                    <input v-model="newPlat.name"
+                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
                                         placeholder="ex: Risotto aux truffes" type="text" />
+                                    <p v-if="errors.name" class="text-red-500 text-xs">{{ errors.name[0] }}</p>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="text-sm font-bold text-gray-700 ml-1">Catégorie</label>
-                                    <div class="relative">
-                                        <select
-                                            class="w-full appearance-none px-4 py-3 bg-surface-container-low border border-gray-100 rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary transition-all outline-none text-gray-700">
-                                            <option>Sélectionner une catégorie</option>
-                                            <option>Entrées</option>
-                                            <option>Plats Principaux</option>
-                                            <option>Desserts</option>
-                                            <option>Boissons</option>
-                                        </select>
-                                        <span
-                                            class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">expand_more</span>
-                                    </div>
+                                    <label class="text-sm font-bold text-gray-700">Description</label>
+                                    <textarea v-model="newPlat.description"
+                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none resize-none"
+                                        placeholder="Description du plat..." rows="3"></textarea>
+                                    <p v-if="errors.description" class="text-red-500 text-xs">{{ errors.description[0] }}</p>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="text-sm font-bold text-gray-700 ml-1">Prix (€)</label>
+                                    <label class="text-sm font-bold text-gray-700">Prix (€)</label>
                                     <div class="relative">
-                                        <input
-                                            class="w-full px-4 py-3 bg-surface-container-low border border-gray-100 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all outline-none"
+                                        <input v-model="newPlat.prix"
+                                            class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
                                             placeholder="0.00" step="0.01" type="number" />
-                                        <span
-                                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</span>
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</span>
                                     </div>
+                                    <p v-if="errors.prix" class="text-red-500 text-xs">{{ errors.prix[0] }}</p>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="text-sm font-bold text-gray-700 ml-1">Image du Plat</label>
+                                    <label class="text-sm font-bold text-gray-700">Image du Plat</label>
                                     <div class="relative group cursor-pointer">
-                                        <div
-                                            class="w-full h-32 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 bg-gray-50 group-hover:bg-violet-50 group-hover:border-violet-200 transition-all">
-                                            <span
-                                                class="material-symbols-outlined text-gray-400 group-hover:text-violet-500">cloud_upload</span>
-                                            <span
-                                                class="text-xs font-bold text-gray-500 group-hover:text-violet-600">Cliquez
-                                                pour télécharger</span>
+                                        <div class="w-full h-28 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 bg-gray-50 group-hover:bg-violet-50 group-hover:border-violet-200 transition-all">
+                                            <span class="material-symbols-outlined text-gray-400 group-hover:text-violet-500">cloud_upload</span>
+                                            <span class="text-xs font-bold text-gray-500 group-hover:text-violet-600">
+                                                {{ newPlat.image ? newPlat.image.name : 'Cliquez pour télécharger' }}
+                                            </span>
                                         </div>
-                                        <input class="absolute inset-0 opacity-0 cursor-pointer" type="file" />
+                                        <input @change="e => newPlat.image = e.target.files[0]" class="absolute inset-0 opacity-0 cursor-pointer" type="file" accept="image/*" />
                                     </div>
+                                    <p v-if="errors.image" class="text-red-500 text-xs">{{ errors.image[0] }}</p>
                                 </div>
-                                <div class="pt-4 space-y-3">
-                                    <button
-                                        class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-violet-200 active:scale-95 transition-all flex items-center justify-center gap-2"
-                                        type="submit">
+                                <div class="pt-2 space-y-3">
+                                    <button class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-violet-200 active:scale-95 transition-all flex items-center justify-center gap-2" type="submit">
                                         <span class="material-symbols-outlined">save</span>
                                         Enregistrer le plat
                                     </button>
-                                    <button
-                                        class="w-full bg-transparent hover:bg-gray-50 text-gray-500 font-bold py-2 rounded-xl transition-all text-sm"
-                                        type="reset">
-                                        Réinitialiser le formulaire
+                                </div>
+                            </form>
+
+                            <!-- Stats -->
+                            <div class="mt-6 bg-violet-600 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                                <div class="relative z-10">
+                                    <h4 class="font-bold text-lg mb-1">Résumé du Menu</h4>
+                                    <div class="space-y-3 mt-4">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm opacity-80">Total des plats</span>
+                                            <span class="font-black">{{ totalPlats }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="absolute -right-4 -bottom-4 opacity-10">
+                                    <span class="material-symbols-outlined !text-8xl">restaurant</span>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- Edit Form -->
+                    <div v-if="displayEditForm" class="col-span-12 lg:col-span-4">
+                        <div class="sticky top-24 bg-white rounded-2xl shadow-2xl p-6 border border-violet-50">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-lg text-gray-800">Modifier le Plat</h3>
+                                        <p class="text-xs text-gray-500">Mettre à jour les informations</p>
+                                    </div>
+                                </div>
+                                <button @click="displayEditForm = false" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                            <form @submit="updatePlat" class="space-y-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-gray-700">Nom du Plat</label>
+                                    <input v-model="editPlat.name"
+                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                                        type="text" />
+                                    <p v-if="errors.name" class="text-red-500 text-xs">{{ errors.name[0] }}</p>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-gray-700">Description</label>
+                                    <textarea v-model="editPlat.description"
+                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none resize-none"
+                                        rows="3"></textarea>
+                                    <p v-if="errors.description" class="text-red-500 text-xs">{{ errors.description[0] }}</p>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-gray-700">Prix (€)</label>
+                                    <div class="relative">
+                                        <input v-model="editPlat.prix"
+                                            class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                                            step="0.01" type="number" />
+                                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</span>
+                                    </div>
+                                    <p v-if="errors.prix" class="text-red-500 text-xs">{{ errors.prix[0] }}</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <label class="text-sm font-bold text-gray-700">Disponible</label>
+                                    <input v-model="editPlat.is_available" type="checkbox" class="w-4 h-4 accent-violet-600" />
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-sm font-bold text-gray-700">Nouvelle Image (optionnel)</label>
+                                    <div class="relative group cursor-pointer">
+                                        <div class="w-full h-24 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 bg-gray-50 group-hover:bg-amber-50 group-hover:border-amber-200 transition-all">
+                                            <span class="material-symbols-outlined text-gray-400 group-hover:text-amber-500">cloud_upload</span>
+                                            <span class="text-xs font-bold text-gray-500">
+                                                {{ editPlat.image ? editPlat.image.name : 'Changer l\'image' }}
+                                            </span>
+                                        </div>
+                                        <input @change="e => editPlat.image = e.target.files[0]" class="absolute inset-0 opacity-0 cursor-pointer" type="file" accept="image/*" />
+                                    </div>
+                                </div>
+                                <div class="pt-2">
+                                    <button class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2" type="submit">
+                                        <span class="material-symbols-outlined">save</span>
+                                        Mettre à jour
                                     </button>
                                 </div>
                             </form>
-                                 <!-- Statistics/Brief Card -->
-                        <div class="mt-6 bg-secondary text-white rounded-2xl p-6 shadow-xl relative overflow-hidden bg-violet-600">
-                            <div class="relative z-10">
-                                <h4 class="font-bold text-lg mb-1">Résumé du Menu</h4>
-                                <div class="space-y-3 mt-4">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-sm opacity-80">Total des plats</span>
-                                        <span class="font-black">48</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-sm opacity-80">Catégories</span>
-                                        <span class="font-black">6</span>
-                                    </div>
-                                    <div class="w-full bg-white/20 h-2 rounded-full mt-2">
-                                        <div class="bg-white h-full rounded-full" style="width: 75%"></div>
-                                    </div>
-                                    <p class="text-[10px] uppercase font-bold tracking-widest opacity-60">75% du menu
-                                        optimisé</p>
-                                </div>
-                            </div>
-                            <div class="absolute -right-4 -bottom-4 opacity-10">
-                                <span class="material-symbols-outlined !text-8xl">restaurant</span>
-                            </div>
                         </div>
-                        </div>
-                   
-                    </aside>
+                    </div>
+
                 </div>
             </div>
         </main>
+
+        <!-- Delete Confirm Modal -->
+        <div v-if="deleteConfirmId" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4">
+                <div class="flex flex-col items-center gap-4 text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-red-500 !text-3xl">delete</span>
+                    </div>
+                    <h3 class="font-bold text-xl text-gray-800">Confirmer la suppression</h3>
+                    <p class="text-gray-500 text-sm">Cette action est irréversible.</p>
+                    <div class="flex gap-3 w-full mt-2">
+                        <button @click="deleteConfirmId = null" class="flex-1 py-3 rounded-xl border border-gray-200 font-bold text-gray-600 hover:bg-gray-50 transition-all">
+                            Annuler
+                        </button>
+                        <button @click="deletePlat(deleteConfirmId)" class="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition-all">
+                            Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
