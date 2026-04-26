@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('date_enter');
             $table->date('date_sortie');
             $table->integer('chamber');
-            $table->numeric('prix');
+            $table->float('prix');
             $table->integer('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->integer('chamber_id');
