@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class User extends Model
 {
+     protected $casts = [
+        'experiences' => 'array',
+        'langages' => 'array',
+     ];
+
      protected $fillable = [
             'name',
             'email',
