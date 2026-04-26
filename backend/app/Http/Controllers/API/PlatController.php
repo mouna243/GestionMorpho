@@ -29,7 +29,8 @@ class PlatController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:plats',
             'image' => 'required|image|mimes:jpg,png,jpeg|max:2048',
-            'discription' => 'required|string|max:500',
+            'description' => 'required|string|max:500',
+            'prix' => 'required|numeric'
         ]);
 
         $file = $request->file('image');
@@ -39,7 +40,8 @@ class PlatController extends Controller
         $plat = Plat::create([
           'name' => $request->name,
             'image' => $path,
-            'discription' => $request->discription,
+            'description' => $request->description,
+            'prix' => $request->prix
         ]);
 
         if ($plat) {
@@ -84,7 +86,8 @@ class PlatController extends Controller
         $request->validate([
          'name' => 'required|string|max:255|unique:plats',
             'image' => 'required|image|mimes:jpg,png,jpeg|max:2048',
-            'discription' => 'required|string|max:500',
+            'description' => 'required|string|max:500',
+            'prix' => 'required|numeric',
             'is_available' => 'required|boolean'
         ]);
 
@@ -103,7 +106,8 @@ class PlatController extends Controller
         $is_updated = $plat->update([
             'name' => $request->name,
             'image' => $path,
-            'discription' => $request->discription,
+            'description' => $request->description,
+            'prix' => $request->prix,
             'is_available' => $request->is_available
         ]);
 

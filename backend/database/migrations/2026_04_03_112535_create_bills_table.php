@@ -6,20 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-/*
 
-- id : integer
-
-- billable_id : integer
-
-- billable_type : float
-
-- montant : float
-
- */
     public function up(): void
     {
         Schema::create('bills', function (Blueprint $table) {

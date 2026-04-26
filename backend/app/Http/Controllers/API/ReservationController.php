@@ -28,7 +28,7 @@ class ReservationController extends Controller
         $request->validate([
             'date_enter' => 'required|date',
             'date_sortie' => 'required|date',
-            'prix' => 'required|float',
+            'prix' => 'required|numeric',
             'chamber_id' => 'required|integer'
         ]);
 
@@ -81,7 +81,7 @@ class ReservationController extends Controller
         $request->validate([
             'date_enter' => 'required|date',
             'date_sortie' => 'required|date',
-            'prix' => 'required|float',
+            'prix' => 'required|numeric',
             'chamber_id' => 'required|integer'
         ]);
 

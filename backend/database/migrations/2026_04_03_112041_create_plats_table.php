@@ -14,15 +14,15 @@ return new class extends Migration {
         /*  - id : integer
          - image : string
          - name : string
-         - discription : string
+         - description : string
          - status : boolean
          */
         Schema::create('plats', function (Blueprint $table) {
             $table->id();
             $table->string('image');
             $table->string('name');
-            $table->string('discription');
-            $table->float('prix');
+            $table->string('description');
+            $table->numeric('prix');
             $table->boolean('is_available')->default('true');
             $table->timestamps();
         });

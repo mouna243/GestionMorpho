@@ -17,7 +17,7 @@ return new class extends Migration
 
 - discreption : string
 
-- prix : float
+- prix : numeric
 
 - time_start : date
 
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->id();
             $table->enum('name', ['SPA', 'Restoration']);
             $table->string('discreption');
-            $table->float('prix');
+            $table->numeric('prix');
             $table->date('time_start');
             $table->date('time_end');
             $table->boolean('is_available')->default('true');

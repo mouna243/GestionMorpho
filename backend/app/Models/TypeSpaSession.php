@@ -8,7 +8,7 @@ class TypeSpaSession extends Model
 {
     protected $fillable =[
         'name',
-        'discription',
+        'description',
         'prix',
         'status'
     ];

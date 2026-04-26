@@ -9,6 +9,7 @@ class ChamberType extends Model
      protected $fillable = [
             'name',
             'description',
+            'prix',
             'is_available',
      ];
 

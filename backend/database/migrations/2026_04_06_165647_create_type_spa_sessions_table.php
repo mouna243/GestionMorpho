@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('type_spa_sessions', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('discription');
+            $table->string('description');
             $table->float('prix');
             $table->boolean('status');
             $table->timestamps();

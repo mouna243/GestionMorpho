@@ -66,24 +66,11 @@ const register = async () => {
 
   <div class="bg-background text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
     <!-- TopAppBar from JSON -->
-    <header
-      class="bg-[#fcf9ef]/80 dark:bg-stone-950/80 backdrop-blur-xl docked full-width top-0 sticky z-50 transition-opacity duration-500">
+    <header>
       <div class="flex justify-between items-center w-full px-8 py-6 max-w-screen-2xl mx-auto">
-        <div class="text-2xl font-serif italic text-[#9a401f] dark:text-[#c05c39]">Kasbah Royale</div>
-        <nav class="hidden md:flex items-center space-x-12">
-          <a class="text-stone-600 dark:text-stone-400 font-medium Manrope uppercase tracking-widest text-xs hover:text-[#436182] transition-all duration-300 ease-in-out"
-            href="#">The Estate</a>
-          <a class="text-stone-600 dark:text-stone-400 font-medium Manrope uppercase tracking-widest text-xs hover:text-[#436182] transition-all duration-300 ease-in-out"
-            href="#">Suites</a>
-          <a class="text-stone-600 dark:text-stone-400 font-medium Manrope uppercase tracking-widest text-xs hover:text-[#436182] transition-all duration-300 ease-in-out"
-            href="#">Experiences</a>
-          <a class="text-stone-600 dark:text-stone-400 font-medium Manrope uppercase tracking-widest text-xs hover:text-[#436182] transition-all duration-300 ease-in-out"
-            href="#">Inquiry</a>
-        </nav>
-        <button
-          class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label text-xs uppercase tracking-widest font-semibold hover:shadow-lg transition-all duration-300">
-          Reserve Now
-        </button>
+        <div class="text-2xl font-serif italic text-[#9a401f] dark:text-[#c05c39]"><router-link to="/">Kasbah Royale</router-link>
+        </div>
+
       </div>
     </header>
     <main class="min-h-screen relative zellige-overlay overflow-hidden">
@@ -197,8 +184,8 @@ const register = async () => {
                 </button>
                 <p class="font-body text-on-surface-variant text-sm">
                   Already part of the estate?
-                  <a class="text-tertiary font-bold hover:underline underline-offset-4 transition-all ml-1" href="#">Log
-                    In</a>
+                  <a class="text-tertiary font-bold hover:underline underline-offset-4 transition-all ml-1"> <router-link to="/login">Log
+                    In</router-link></a>
                 </p>
               </div>
             </form>

@@ -14,7 +14,7 @@ class ChamberTypeController extends Controller
     public function index()
     {
         //afficher tout les types de chambre
-        $chamberTypes = ChamberType::paginate(10);
+        $chamberTypes = ChamberType::with('chambers')->paginate(10);
         return response()->json([
             "data" => $chamberTypes
         ], 200);
@@ -28,12 +28,14 @@ class ChamberTypeController extends Controller
     {
         $request->validate([
             "name" => 'required|string|max:255',
-            "discription" => 'required|string|max:500'
+            "description" => 'required|string|max:500',
+            "prix" => 'required',
         ]);
 
         $chamberType = ChamberType::create([
             'name' => $request->name,
-            'discription' => $request->discription
+            'description' => $request->description,
+            'prix' => $request->prix
         ]);
         if (!$chamberType) {
 
@@ -56,13 +58,15 @@ class ChamberTypeController extends Controller
     {
         $request->validate([
             "name" => 'required|string|max:255',
-            "discription" => 'required|string|max:500',
+            "description" => 'required|string|max:500',
+            'prix' => 'required|numeric',
             "is_available" => 'required|boolean',
         ]);
 
         $is_updated = $chamberType->update([
             'name' => $request->name,
-            'discription' => $request->discription,
+            'description' => $request->description,
+            'prix' => $request->prix,
             'is_available' => $request->is_available
         ]);
 

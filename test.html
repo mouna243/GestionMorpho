@@ -1,1 +1,63 @@
- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+</head>
+<body>
+           <div id="typeModal" class="fixed inset-0 z-50 items-center justify-center modal-overlay">
+                <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+                    <div class="p-6 border-b border-slate-100">
+                        <h3 id="typeModalTitle" class="text-xl font-semibold text-slate-900">Ajouter un Type de Chambre
+                        </h3>
+                    </div>
+                    <form id="typeForm" class="p-6 space-y-4">
+                        <input type="" id="typeId" value="">
+                        <div>
+                            <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">Nom <span
+                                    class="text-red-500">*</span></label>
+                            <input type="text" id="typeName" required
+                                class="w-full border-slate-200 rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"
+                                placeholder="Ex: Suite Deluxe, Standard...">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-xs text-slate-700">Description</label>
+                            <textarea id="typeDescription" rows="3"
+                                class="w-full border-slate-200 rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"
+                                placeholder="Description du type de chambre..."></textarea>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">Prix / Nuit (€)
+                                <span class="text-red-500">*</span></label>
+                            <input type="number" id="typePrix" required step="0.01"
+                                class="w-full border-slate-200 rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"
+                                placeholder="99.00">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">Disponible <span
+                                    class="text-red-500">*</span></label>
+                            <div class="flex gap-6 pt-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="typeIsAvailable" value="true" checked
+                                        class="w-4 h-4 text-[#6b38d4] focus:ring-[#6b38d4]"> Oui
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="typeIsAvailable" value="false"
+                                        class="w-4 h-4 text-[#6b38d4] focus:ring-[#6b38d4]"> Non
+                                </label>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 pt-4">
+                            <button type="button"
+                                class="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-all">Annuler</button>
+                            <button type="submit"
+                                class="flex-1 px-4 py-2 bg-[#6b38d4] text-white rounded-lg hover:bg-[#8455ef] transition-all font-semibold">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    
+</body>
+</html>

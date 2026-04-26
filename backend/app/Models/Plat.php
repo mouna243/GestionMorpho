@@ -9,7 +9,8 @@ class Plat extends Model
     protected $fillable = [
         'name',
         'image',
-        'discription',
+        'description',
+        'prix',
         'is_available'
     ];
 

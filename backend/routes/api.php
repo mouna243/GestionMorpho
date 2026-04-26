@@ -31,7 +31,7 @@ Route::prefix('auth')->group(function () {
 
 
 /* Admin Routes */
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+/* Route::middleware(['auth:sanctum', 'role:admin'])->group(function () { */
 
     /* Gestion des staff */
     Route::prefix('admin')->group(function () {
@@ -63,7 +63,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     //////* --plats */
     Route::apiResource('plats', PlatController::class);
 
-});
+/* }); */
 
 
 

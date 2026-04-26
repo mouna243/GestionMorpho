@@ -28,13 +28,13 @@ class TypeSpaSessionController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'discription' => 'required|string|max:500',
-            'prix' => 'required|float'
+            'description' => 'required|string|max:500',
+            'prix' => 'required|numeric'
         ]);
 
         $typeSpaSession = TypeSpaSession::create([
             'name' => $request->name,
-            'discription' => $request->discription,
+            'description' => $request->description,
             'prix' => $request->prix
         ]);
         if (!$typeSpaSession) {
@@ -58,14 +58,14 @@ class TypeSpaSessionController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'discription' => 'required|string|max:500',
-            'prix' => 'required|float',
+            'description' => 'required|string|max:500',
+            'prix' => 'required|numeric',
             'is_available' => 'required|boolean',
         ]);
 
         $is_updated = $typeSpaSession->update([
             'name' => $request->name,
-            'discription' => $request->discription,
+            'description' => $request->description,
             'prix' => $request->prix,
             'is_available' => $request->is_available
         ]);

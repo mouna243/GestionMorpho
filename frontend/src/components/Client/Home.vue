@@ -1,4 +1,6 @@
 <script>
+import router from '../../router';
+
 
 </script>
 
@@ -7,25 +9,21 @@
     <!-- TopAppBar -->
     <nav
       class="fixed top-0 w-full z-50 flex justify-between items-center px-12 py-6 max-w-screen-2xl mx-auto bg-[#fcf9ef]/80 backdrop-blur-md shadow-[0_20px_40px_rgba(28,28,22,0.06)]">
-      <div class="font-serif text-2xl uppercase tracking-[0.2em] text-[#9a401f]">Kasbah Royale</div>
+      <div class="font-serif text-2xl uppercase tracking-[0.2em] text-[#9a401f]"><router-link to="/">Kasbah Royale</router-link></div>
       <div class="hidden md:flex items-center gap-8">
         <a class="font-noto-serif text-lg tracking-tight text-[#755717] border-b-2 border-[#755717] pb-1 font-semibold"
           href="#">The Riad</a>
         <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300"
-          href="{{ route('rooms') }}">Rooms</a>
+          > <router-link to="/room">Suites</router-link></a>
         <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300"
-          href="#">Experiences</a>
-        <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300"
-          href="#">Wellness</a>
-        <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300"
-          href="#">Gallery</a>
+          ><router-link to="/SPA">SPA</router-link></a>
       </div>
       <div class="flex items-center gap-6">
         <span
           class="material-symbols-outlined text-primary cursor-pointer hover:scale-110 transition-transform">language</span>
         <button
           class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-500 ease-in-out active:opacity-80 active:scale-95">
-          Book a Stay
+         <router-link to="/login">Login</router-link>
         </button>
       </div>
     </nav>

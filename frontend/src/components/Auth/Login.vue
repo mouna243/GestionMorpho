@@ -122,8 +122,6 @@ const login = async ()=> {
                     <label 
                       class="block font-label text-[10px] uppercase tracking-widest text-on-surface-variant transition-colors group-focus-within:text-primary"
                       for="password">Password</label>
-                    <a class="text-[10px] uppercase tracking-widest text-secondary hover:text-tertiary transition-colors duration-300"
-                      href="#">Forgot Password?</a>
                   </div>
                   <div class="relative">
                     <input v-model="user.password"
@@ -167,9 +165,9 @@ const login = async ()=> {
             </form>
             <footer class="pt-8 text-center md:text-left">
               <p class="text-stone-500 font-light text-sm">
-                Seeking your private escape?
-                <a class="text-primary font-semibold hover:underline underline-offset-4 transition-all" href="#">Request
-                  an Invitation</a>
+                Do you have an account?
+                <a class="text-primary font-semibold hover:underline underline-offset-4 transition-all" > <router-link to="/register"> Register </router-link></a>
+               
               </p>
             </footer>
           </div>
