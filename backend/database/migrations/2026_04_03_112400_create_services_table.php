@@ -9,30 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-/*     Services
 
-- id : integer
-
-- name : string
-
-- discreption : string
-
-- prix : numeric
-
-- time_start : date
-
-- time_end : date
-
-- status : boolean
-
-+ method(): Type */
     public function up(): void
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
             $table->enum('name', ['SPA', 'Restoration']);
             $table->string('discreption');
-            $table->numeric('prix');
+            $table->float('prix');
             $table->date('time_start');
             $table->date('time_end');
             $table->boolean('is_available')->default('true');
