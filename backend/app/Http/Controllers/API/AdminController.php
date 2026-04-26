@@ -24,18 +24,16 @@ class AdminController extends Controller
             'age' => 'required|integer|min:18|max:100',
             'salaire' => 'required|string',
             'departement_id' => 'required|integer',
-            'experiences' => 'required|array',
-            "experiences.*.title" => 'required|string',
-            "experiences.*.description" => 'required|string',
-            "experiences.*.date_debut" => 'required|date',
-            "experiences.*.date_fin" => 'required|date',
-            "experiences.*.entreprise" => 'required|string',
-            'langages' => 'required|array',
-            "langages.*.name" => 'required|string',
-            "langages.*.level" => 'required|string',
+            'experiences' => 'nullable|array',
+            "experiences.*.title" => 'string',
+            "experiences.*.description" => 'string',
+            "experiences.*.date_debut" => 'date',
+            "experiences.*.date_fin" => 'date',
+            "experiences.*.entreprise" => 'string',
+            'langages' => 'nullable|array',
+            "langages.*.name" => 'string',
+            "langages.*.level" => 'string',
         ]);
-
-        $departement = Departement::where('name', "RH")->first();
 
         $user = User::create([
             'name' => $request->name,
@@ -46,9 +44,9 @@ class AdminController extends Controller
             'age' => $request->age,
             'role' => 'staff',
             'salaire' => $request->salaire,
-            'departement_id' => $departement->id,
-            'experiences' => $request->experiences,
-            'langages' => $request->langages,
+            'departement_id' => $request->departement_id,
+            'experiences' => $request->experiences ?? [],
+            'langages' => $request->langages ?? [],
         ]);
 
         if($user){
@@ -80,20 +78,18 @@ class AdminController extends Controller
             'age' => 'required|integer|min:18|max:100',
             'salaire' => 'required|string',
             'departement_id' => 'required|integer',
-            'experiences' => 'required|array',
-            "experiences.*.title" => 'required|string',
-            "experiences.*.description" => 'required|string',
-            "experiences.*.date_debut" => 'required|date',
-            "experiences.*.date_fin" => 'required|date',
-            "experiences.*.entreprise" => 'required|string',
-            'langages' => 'required|array',
-            "langages.*.name" => 'required|string',
-            "langages.*.level" => 'required|string',
+            'experiences' => 'nullable|array',
+            "experiences.*.title" => 'string',
+            "experiences.*.description" => 'string',
+            "experiences.*.date_debut" => 'date',
+            "experiences.*.date_fin" => 'date',
+            "experiences.*.entreprise" => 'string',
+            'langages' => 'nullable|array',
+            "langages.*.name" => 'string',
+            "langages.*.level" => 'string',
         ]);
 
-        $departement = Departement::where('name', "RH")->first();
-
-        $user =$user->update([
+        $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -102,10 +98,11 @@ class AdminController extends Controller
             'age' => $request->age,
             'role' => 'staff',
             'salaire' => $request->salaire,
-            'departement_id' => $departement->id,
-            'experiences' => $request->experiences,
-            'langages' => $request->langages,
+            'departement_id' => $request->departement_id,
+            'experiences' => $request->experiences ?? [],
+            'langages' => $request->langages ?? [],
         ]);
+        $user = $user->fresh();
 
         if($user){
             return response()->json([
