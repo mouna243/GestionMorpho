@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('commandes', function (Blueprint $table) {
             $table->id();
             $table->date('date');
-            $table->numeric('prix');
+            $table->float('prix');
             $table->integer('client_id');
             $table->foreign('client_id')->references('id')->on('users')->onDelete('cascade');
             $table->integer('service_id');
