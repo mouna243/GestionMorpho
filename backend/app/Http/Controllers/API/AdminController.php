@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\Absences;
+use App\Models\Chamber;
+use App\Models\Plat;
+use App\Models\Workshift;
 use App\Http\Controllers\Controller;
 use App\Models\Departement;
 use App\Models\User;
@@ -10,6 +14,36 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
+    public function index()
+    {
+        $staffs = User::with('departements')->where('role', 'staff')->paginate(10);
+        return response()->json(['data' => $staffs, 'success' => true], 200);
+    }
+
+    public function stats()
+    {
+        return response()->json([
+            'data' => [
+                'total_chambres'    => Chamber::count(),
+                'chambres_dispo'    => Chamber::where('is_available', true)->count(),
+                'total_plats'       => Plat::count(),
+                'plats_dispo'       => Plat::where('is_available', true)->count(),
+                'total_staff'       => User::where('role', 'staff')->count(),
+                'total_departements'=> Departement::count(),
+                'total_workshifts'  => Workshift::count(),
+                'total_absences'    => Absences::count(),
+                'absences_justifiees'   => Absences::where('is_justified', true)->count(),
+                'absences_non_justifiees' => Absences::where('is_justified', false)->count(),
+            ],
+            'success' => true
+        ], 200);
+    }
+
+    public function absences()
+    {
+        $absences = Absences::with(['staff', 'workshift'])->latest()->get();
+        return response()->json(['data' => $absences, 'success' => true], 200);
+    }
     /**
      * Store a newly created resource in storage.
      */
