@@ -11,6 +11,9 @@ import AddPlat from "../components/Admin/AddPlat.vue"
 import AddDepartement from "../components/Admin/AddDepartement.vue"
 import AddChambers from "../components/Admin/AddChamber.vue";
 import AddWorkShift from "../components/Admin/AddWorkShift.vue";
+import DashbordRH from "../components/Staff/RH/DashbordRH.vue";
+import Personnel from "../components/Staff/RH/GestionPersonnel.vue"
+import Taches from "../components/Staff/RH/gestionTaches.vue"
 
 // // temporary component (so you don't get errors)
 
@@ -81,6 +84,21 @@ const routes = [
     path : "/admin/WorkShift",
     name : "WorkShift",
     component : AddWorkShift
+},
+{
+    path : "/RH/dashbord",
+    name : "DashbordRH",
+    component : DashbordRH
+},
+{
+  path : "/RH/personnel",
+  name : "personnel",
+  component : Personnel
+},
+{
+  path : "/RH/taches",
+  name : "taches",
+  component : Taches
 }
 ];
 
