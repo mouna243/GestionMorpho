@@ -1,8 +1,33 @@
 <script setup>
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
 
-const router = useRouter();
+const stats = ref({});
+const absences = ref([]);
+const tasks = ref([]);
 
+async function fetchStats() {
+    const res = await fetch('http://localhost:8080/api/admin/stats');
+    const json = await res.json();
+    stats.value = json.data;
+}
+
+async function fetchAbsences() {
+    const res = await fetch('http://localhost:8080/api/admin/absences');
+    const json = await res.json();
+    absences.value = json.data;
+}
+
+async function fetchTasks() {
+    const res = await fetch('http://localhost:8080/api/tasks');
+    const json = await res.json();
+    tasks.value = json.data.data ?? json.data;
+}
+
+onMounted(() => {
+    fetchStats();
+    fetchAbsences();
+    fetchTasks();
+});
 </script>
 
 <template>
@@ -100,8 +125,7 @@ const router = useRouter();
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-gray-500">Chambres Totales</p>
-                <p class="text-2xl font-bold text-gray-800">452</p>
-                
+                <p class="text-2xl font-bold text-gray-800">{{ stats.total_chambres ?? '...' }}</p>
               </div>
               <div class="p-3 bg-blue-100 rounded-full">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +139,7 @@ const router = useRouter();
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-gray-500">Plats Disponibles</p>
-                <p class="text-2xl font-bold text-gray-800">45</p>
+                <p class="text-2xl font-bold text-gray-800">{{ stats.plats_dispo ?? '...' }}</p>
               </div>
               <div class="p-3 bg-purple-100 rounded-full">
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,7 +153,7 @@ const router = useRouter();
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-gray-500">Personnel Total</p>
-                <p class="text-2xl font-bold text-gray-800">45</p>
+                <p class="text-2xl font-bold text-gray-800">{{ stats.total_staff ?? '...' }}</p>
               </div>
               <div class="p-3 bg-green-100 rounded-full">
                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,8 +166,8 @@ const router = useRouter();
           <div class="p-6 bg-white rounded-xl shadow-lg border-l-4 border-yellow-500 wave-card">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-500">Taux Occupation</p>
-                <p class="text-2xl font-bold text-gray-800">55%</p>
+                <p class="text-sm text-gray-500">Départements</p>
+                <p class="text-2xl font-bold text-gray-800">{{ stats.total_departements ?? '...' }}</p>
               </div>
               <div class="p-3 bg-yellow-100 rounded-full">
                 <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,20 +182,26 @@ const router = useRouter();
         <div class="mb-8">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-semibold text-gray-800">Tâches Administratives</h2>
-            <button class="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-              + Nouvelle Tâche
-            </button>
+            <span class="px-3 py-1 text-sm bg-violet-100 text-violet-700 rounded-full font-semibold">{{ tasks.length }} tâche(s)</span>
           </div>
           <div class="bg-white rounded-xl shadow-lg overflow-hidden">
             <div class="divide-y divide-gray-200">
-              <div v-for="task in adminTasks" :key="task.id" class="p-4 hover:bg-gray-50">
+              <div v-if="tasks.length === 0" class="p-6 text-center text-sm text-gray-400">Aucune tâche trouvée</div>
+              <div v-for="task in tasks" :key="task.id" class="p-4 hover:bg-gray-50">
                 <div class="flex items-center justify-between">
-                  <div>
-                    <p class="font-medium text-gray-800">menage</p>
-                    <p class="text-sm text-gray-500">organiser les chambers</p>
+                  <div class="flex items-center gap-3">
+                    <div :class="task.is_completed ? 'bg-green-100' : 'bg-violet-100'" class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span :class="task.is_completed ? 'text-green-600' : 'text-violet-600'" class="material-symbols-outlined text-base">
+                        {{ task.is_completed ? 'check_circle' : 'pending' }}
+                      </span>
+                    </div>
+                    <div>
+                      <p class="font-medium text-gray-800">{{ task.name }}</p>
+                      <p class="text-sm text-gray-500">{{ task.description }}</p>
+                    </div>
                   </div>
-                  <span :class="task.priority === 'high' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'" class="px-2 py-1 text-xs rounded-full">
-                   normale
+                  <span :class="task.is_completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'" class="px-2 py-1 text-xs rounded-full font-semibold">
+                    {{ task.is_completed ? 'Terminée' : 'En cours' }}
                   </span>
                 </div>
               </div>
@@ -188,18 +218,25 @@ const router = useRouter();
                 <table class="min-w-full divide-y divide-gray-200">
                   <thead class="bg-gray-50">
                     <tr>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">check</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personnel</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                     </tr>
                   </thead>
                   <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-if="absences.length === 0">
+                      <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-400">Aucune absence enregistrée</td>
+                    </tr>
                     <tr v-for="absence in absences" :key="absence.id">
-                        <td class="flex justify-center items-center"> <input type="checkbox"></td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">12/12/2023</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        {{ absence.staff?.name ?? '—' }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ absence.created_at?.substring(0, 10) }}
+                      </td>
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <span :class="absence.justified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="px-2 py-1 text-xs rounded-full">
-                         justifier
+                        <span :class="absence.is_justified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="px-2 py-1 text-xs rounded-full">
+                          {{ absence.is_justified ? 'Justifiée' : 'Non justifiée' }}
                         </span>
                       </td>
                     </tr>
@@ -214,21 +251,20 @@ const router = useRouter();
             <h2 class="mb-4 text-xl font-semibold text-gray-800">Statistiques Rapides</h2>
             <div class="grid grid-cols-2 gap-4">
               <div class="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg text-white">
-                <p class="text-sm">Chambres Occupées</p>
-                <p class="text-2xl font-bold">12</p>
-                
+                <p class="text-sm">Chambres Disponibles</p>
+                <p class="text-2xl font-bold">{{ stats.chambres_dispo ?? '...' }}</p>
               </div>
               <div class="p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg text-white">
-                <p class="text-sm">Sessions SPA</p>
-                <p class="text-2xl font-bold">15</p>
+                <p class="text-sm">Total Plats</p>
+                <p class="text-2xl font-bold">{{ stats.total_plats ?? '...' }}</p>
               </div>
               <div class="p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg text-white">
-                <p class="text-sm">Types de Chambres</p>
-                <p class="text-2xl font-bold">78</p>
+                <p class="text-sm">Workshifts</p>
+                <p class="text-2xl font-bold">{{ stats.total_workshifts ?? '...' }}</p>
               </div>
               <div class="p-4 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-lg text-white">
-                <p class="text-sm">Workshifts Actifs</p>
-                <p class="text-2xl font-bold">12</p>
+                <p class="text-sm">Absences Justifiées</p>
+                <p class="text-2xl font-bold">{{ stats.absences_justifiees ?? '...' }}</p>
               </div>
             </div>
           </div>
