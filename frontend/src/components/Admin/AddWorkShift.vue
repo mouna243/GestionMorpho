@@ -1,3 +1,94 @@
+<script setup>
+import { ref, onMounted } from 'vue';
+
+const API = 'http://localhost:8080/api/workshifts';
+const API_DEPT = 'http://localhost:8080/api/departements';
+
+const workshifts = ref([]);
+const departements = ref([]);
+const errors = ref({});
+const successMsg = ref('');
+
+const form = ref({ departement_id: '', date_debut: '', date_fin: '', check_in: '', check_out: '' });
+
+// edit
+const showEditModal = ref(false);
+const editId = ref(null);
+const editForm = ref({ departement_id: '', date_debut: '', date_fin: '', check_in: '', check_out: '' });
+const editErrors = ref({});
+
+function deptName(id) {
+    return departements.value.find(d => d.id == id)?.name ?? id;
+}
+
+function formatDate(d) {
+    if (!d) return '';
+    return d.replace('T', ' ').substring(0, 16);
+}
+
+async function fetchAll() {
+    const [ws, dp] = await Promise.all([
+        fetch(API).then(r => r.json()),
+        fetch(API_DEPT).then(r => r.json())
+    ]);
+    workshifts.value = ws.data.data ?? ws.data;
+    departements.value = dp.data.data ?? dp.data;
+}
+
+async function addWorkshift(e) {
+    e.preventDefault();
+    errors.value = {};
+    successMsg.value = '';
+    const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(form.value)
+    });
+    const json = await res.json();
+    if (!res.ok) { errors.value = json.errors ?? {}; return; }
+    workshifts.value.unshift(json.data);
+    successMsg.value = 'Workshift créé avec succès !';
+    form.value = { departement_id: '', date_debut: '', date_fin: '', check_in: '', check_out: '' };
+    setTimeout(() => successMsg.value = '', 3000);
+}
+
+function openEdit(ws) {
+    editId.value = ws.id;
+    editForm.value = {
+        departement_id: ws.departement_id,
+        date_debut: ws.date_debut,
+        date_fin: ws.date_fin,
+        check_in: ws.check_in,
+        check_out: ws.check_out
+    };
+    editErrors.value = {};
+    showEditModal.value = true;
+}
+
+async function updateWorkshift(e) {
+    e.preventDefault();
+    editErrors.value = {};
+    const res = await fetch(`${API}/${editId.value}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(editForm.value)
+    });
+    const json = await res.json();
+    if (!res.ok) { editErrors.value = json.errors ?? {}; return; }
+    const idx = workshifts.value.findIndex(w => w.id === editId.value);
+    if (idx !== -1) workshifts.value[idx] = json.data;
+    showEditModal.value = false;
+}
+
+async function deleteWorkshift(id) {
+    if (!confirm('Supprimer ce workshift ?')) return;
+    await fetch(`${API}/${id}`, { method: 'DELETE' });
+    workshifts.value = workshifts.value.filter(w => w.id !== id);
+}
+
+onMounted(fetchAll);
+</script>
+
 <template>
         <div class="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-50">
     <!-- SideNavBar -->
@@ -103,21 +194,17 @@ Ajouter un Workshift
 <p class="text-[#494454] text-sm mt-1">Planifiez une nouvelle période de travail</p>
 </div>
 <div class="p-6">
-<form class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<form @submit="addWorkshift" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <!-- departement_id -->
 <div class="space-y-2">
 <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">
 Département <span class="text-red-500">*</span>
 </label>
-<select name="departement_id" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all bg-white">
+<select v-model="form.departement_id" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all bg-white">
 <option value="">Sélectionner un département</option>
-<option value="1">Hospitality</option>
-<option value="2">Kitchen</option>
-<option value="3">Spa & Wellness</option>
-<option value="4">Maintenance</option>
-<option value="5">Marketing</option>
-<option value="6">Ressources Humaines</option>
+<option v-for="dept in departements" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
 </select>
+<p v-if="errors.departement_id" class="text-red-500 text-xs">{{ errors.departement_id[0] }}</p>
 </div>
 
 <!-- date_debut -->
@@ -125,7 +212,8 @@ Département <span class="text-red-500">*</span>
 <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">
 Date de début <span class="text-red-500">*</span>
 </label>
-<input type="datetime-local" name="date_debut" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"/>
+<input v-model="form.date_debut" type="date" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"/>
+<p v-if="errors.date_debut" class="text-red-500 text-xs">{{ errors.date_debut[0] }}</p>
 </div>
 
 <!-- date_fin -->
@@ -133,7 +221,8 @@ Date de début <span class="text-red-500">*</span>
 <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">
 Date de fin <span class="text-red-500">*</span>
 </label>
-<input type="datetime-local" name="date_fin" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"/>
+<input v-model="form.date_fin" type="date" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"/>
+<p v-if="errors.date_fin" class="text-red-500 text-xs">{{ errors.date_fin[0] }}</p>
 </div>
 
 <!-- check_in -->
@@ -141,8 +230,9 @@ Date de fin <span class="text-red-500">*</span>
 <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">
 Check-in (heure d'arrivée) <span class="text-red-500">*</span>
 </label>
-<input type="time" name="check_in" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"/>
+<input v-model="form.check_in" type="date" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"/>
 <p class="text-xs text-slate-400 mt-1">Heure de début de poste</p>
+<p v-if="errors.check_in" class="text-red-500 text-xs">{{ errors.check_in[0] }}</p>
 </div>
 
 <!-- check_out -->
@@ -150,11 +240,15 @@ Check-in (heure d'arrivée) <span class="text-red-500">*</span>
 <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">
 Check-out (heure de sortie) <span class="text-red-500">*</span>
 </label>
-<input type="time" name="check_out" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"/>
+<input v-model="form.check_out" type="date" required class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all"/>
 <p class="text-xs text-slate-400 mt-1">Heure de fin de poste</p>
+<p v-if="errors.check_out" class="text-red-500 text-xs">{{ errors.check_out[0] }}</p>
 </div>
 
 <div class="md:col-span-2 pt-4">
+<div v-if="successMsg" class="mb-3 p-3 bg-green-50 text-green-700 rounded-lg text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-base">check_circle</span>{{ successMsg }}
+</div>
 <button type="submit" class="w-full md:w-auto bg-[#6b38d4] text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-[#6b38d4]/20 hover:bg-[#8455ef] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
 <span class="material-symbols-outlined">add</span>
 Créer le Workshift
@@ -188,54 +282,26 @@ Workshifts en cours
 </tr>
 </thead>
 <tbody class="divide-y divide-slate-100">
-<tr class="hover:bg-slate-50/80 transition-colors">
+<tr v-if="workshifts.length === 0">
+<td colspan="6" class="px-6 py-8 text-center text-slate-400 text-sm">Aucun workshift trouvé</td>
+</tr>
+<tr v-for="ws in workshifts" :key="ws.id" class="hover:bg-slate-50/80 transition-colors">
 <td class="px-6 py-4">
 <div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[#6b38d4] text-lg">restaurant</span>
-<span class="font-medium">Kitchen</span>
+<span class="material-symbols-outlined text-[#6b38d4] text-lg">domain</span>
+<span class="font-medium">{{ deptName(ws.departement_id) }}</span>
 </div>
 </td>
-<td class="px-6 py-4 text-sm">2024-12-10 08:00</td>
-<td class="px-6 py-4 text-sm">2024-12-10 16:00</td>
-<td class="px-6 py-4 text-sm">08:00</td>
-<td class="px-6 py-4 text-sm">16:00</td>
+<td class="px-6 py-4 text-sm">{{ ws.date_debut }}</td>
+<td class="px-6 py-4 text-sm">{{ ws.date_fin }}</td>
+<td class="px-6 py-4 text-sm">{{ ws.check_in }}</td>
+<td class="px-6 py-4 text-sm">{{ ws.check_out }}</td>
 <td class="px-6 py-4 text-right">
-<button class="p-2 text-slate-400 hover:text-[#6b38d4] hover:bg-violet-50 rounded-lg transition-all">
+<button @click="openEdit(ws)" class="p-2 text-slate-400 hover:text-[#6b38d4] hover:bg-violet-50 rounded-lg transition-all">
 <span class="material-symbols-outlined text-xl">edit</span>
 </button>
-</td>
-</tr>
-<tr class="hover:bg-slate-50/80 transition-colors">
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[#6b38d4] text-lg">hotel</span>
-<span class="font-medium">Hospitality</span>
-</div>
-</td>
-<td class="px-6 py-4 text-sm">2024-12-10 06:00</td>
-<td class="px-6 py-4 text-sm">2024-12-10 14:00</td>
-<td class="px-6 py-4 text-sm">06:00</td>
-<td class="px-6 py-4 text-sm">14:00</td>
-<td class="px-6 py-4 text-right">
-<button class="p-2 text-slate-400 hover:text-[#6b38d4] hover:bg-violet-50 rounded-lg transition-all">
-<span class="material-symbols-outlined text-xl">edit</span>
-</button>
-</td>
-</tr>
-<tr class="hover:bg-slate-50/80 transition-colors">
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-[#6b38d4] text-lg">spa</span>
-<span class="font-medium">Spa & Wellness</span>
-</div>
-</td>
-<td class="px-6 py-4 text-sm">2024-12-10 09:00</td>
-<td class="px-6 py-4 text-sm">2024-12-10 19:00</td>
-<td class="px-6 py-4 text-sm">09:00</td>
-<td class="px-6 py-4 text-sm">19:00</td>
-<td class="px-6 py-4 text-right">
-<button class="p-2 text-slate-400 hover:text-[#6b38d4] hover:bg-violet-50 rounded-lg transition-all">
-<span class="material-symbols-outlined text-xl">edit</span>
+<button @click="deleteWorkshift(ws.id)" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+<span class="material-symbols-outlined text-xl">delete</span>
 </button>
 </td>
 </tr>
@@ -244,221 +310,65 @@ Workshifts en cours
 </div>
 </div>
 
-<!-- Section 3: Gestion des Absences -->
-<div class="bg-white rounded-xl shadow-[0_15px_30px_-15px_rgba(109,59,215,0.08)] overflow-hidden mt-6">
-<div class="p-6 border-b border-slate-100 flex justify-between items-center flex-wrap gap-4">
-<div>
-<h3 class="text-xl font-semibold text-slate-900 flex items-center gap-2">
-<span class="material-symbols-outlined text-[#6b38d4]">event_busy</span>
-Gestion des Absences
-</h3>
-<p class="text-[#494454] text-sm mt-1">Suivi, modification du statut et justification</p>
-</div>
-<div class="bg-[#e9ddff] px-4 py-2 rounded-lg">
-<span class="text-sm font-bold text-[#5516be]">Total Absences: 5</span>
-</div>
-</div>
 
-<div class="overflow-x-auto p-6">
-<table class="w-full text-left">
-<thead class="bg-slate-50/50">
-<tr>
-<th class="px-4 py-3 font-semibold text-xs text-slate-500 uppercase tracking-wider">Personnel</th>
-<th class="px-4 py-3 font-semibold text-xs text-slate-500 uppercase tracking-wider">Département</th>
-<th class="px-4 py-3 font-semibold text-xs text-slate-500 uppercase tracking-wider">Date absence</th>
-<th class="px-4 py-3 font-semibold text-xs text-slate-500 uppercase tracking-wider">Statut</th>
-<th class="px-4 py-3 font-semibold text-xs text-slate-500 uppercase tracking-wider">Justification</th>
-<th class="px-4 py-3 font-semibold text-xs text-slate-500 uppercase tracking-wider text-right">Actions</th>
-</tr>
-</thead>
-<tbody class="divide-y divide-slate-100">
-<!-- Absence 1 - Sophie Martin -->
-<tr class="hover:bg-slate-50/80 transition-colors">
-<td class="px-4 py-4">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-[#e9ddff] flex items-center justify-center">
-<span class="text-xs font-bold text-[#6b38d4]">SM</span>
-</div>
-<span class="font-medium text-sm">Sophie Martin</span>
-</div>
-</td>
-<td class="px-4 py-4 text-sm">Hospitality</td>
-<td class="px-4 py-4 text-sm">2024-12-05</td>
-<td class="px-4 py-4">
-<select name="absence_status" class="text-sm border-slate-200 rounded-lg px-3 py-1 focus:ring-2 focus:ring-[#6b38d4]/20">
-<option value="en_attente" selected>En attente</option>
-<option value="justifie">Justifié</option>
-<option value="non_justifie">Non justifié</option>
-<option value="refuse">Refusé</option>
-</select>
-</td>
-<td class="px-4 py-4">
-<input type="text" name="justification" placeholder="Certificat médical, motif familial..." class="w-full text-sm border-slate-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#6b38d4]/20" value="Rendez-vous médical"/>
-</td>
-<td class="px-4 py-4 text-right">
-<div class="flex items-center justify-end gap-2">
-<button class="px-3 py-1.5 bg-[#6b38d4] text-white text-xs font-semibold rounded-lg hover:bg-[#8455ef] transition-all">
-Enregistrer
-</button>
-</div>
-</td>
-</tr>
-
-<!-- Absence 2 - Thomas Dubois -->
-<tr class="hover:bg-slate-50/80 transition-colors">
-<td class="px-4 py-4">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-[#6ffbbe]/30 flex items-center justify-center">
-<span class="text-xs font-bold text-[#006947]">TD</span>
-</div>
-<span class="font-medium text-sm">Thomas Dubois</span>
-</div>
-</td>
-<td class="px-4 py-4 text-sm">Kitchen</td>
-<td class="px-4 py-4 text-sm">2024-12-03</td>
-<td class="px-4 py-4">
-<select name="absence_status" class="text-sm border-slate-200 rounded-lg px-3 py-1 focus:ring-2 focus:ring-[#6b38d4]/20">
-<option value="en_attente">En attente</option>
-<option value="justifie" selected>Justifié</option>
-<option value="non_justifie">Non justifié</option>
-<option value="refuse">Refusé</option>
-</select>
-</td>
-<td class="px-4 py-4">
-<input type="text" name="justification" placeholder="Certificat médical, motif familial..." class="w-full text-sm border-slate-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#6b38d4]/20" value="Arrêt maladie - 3 jours"/>
-</td>
-<td class="px-4 py-4 text-right">
-<button class="px-3 py-1.5 bg-[#6b38d4] text-white text-xs font-semibold rounded-lg hover:bg-[#8455ef] transition-all">
-Enregistrer
-</button>
-</td>
-</tr>
-
-<!-- Absence 3 - Laura Bernard -->
-<tr class="hover:bg-slate-50/80 transition-colors">
-<td class="px-4 py-4">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-[#d8e2ff] flex items-center justify-center">
-<span class="text-xs font-bold text-[#0058be]">LB</span>
-</div>
-<span class="font-medium text-sm">Laura Bernard</span>
-</div>
-</td>
-<td class="px-4 py-4 text-sm">Spa & Wellness</td>
-<td class="px-4 py-4 text-sm">2024-12-08</td>
-<td class="px-4 py-4">
-<select name="absence_status" class="text-sm border-slate-200 rounded-lg px-3 py-1 focus:ring-2 focus:ring-[#6b38d4]/20">
-<option value="en_attente">En attente</option>
-<option value="justifie">Justifié</option>
-<option value="non_justifie" selected>Non justifié</option>
-<option value="refuse">Refusé</option>
-</select>
-</td>
-<td class="px-4 py-4">
-<input type="text" name="justification" placeholder="Certificat médical, motif familial..." class="w-full text-sm border-slate-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#6b38d4]/20" value=""/>
-</td>
-<td class="px-4 py-4 text-right">
-<button class="px-3 py-1.5 bg-[#6b38d4] text-white text-xs font-semibold rounded-lg hover:bg-[#8455ef] transition-all">
-Enregistrer
-</button>
-</td>
-</tr>
-
-<!-- Absence 4 - Julien Moreau -->
-<tr class="hover:bg-slate-50/80 transition-colors">
-<td class="px-4 py-4">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-[#e0e3e5] flex items-center justify-center">
-<span class="text-xs font-bold text-[#494454]">JM</span>
-</div>
-<span class="font-medium text-sm">Julien Moreau</span>
-</div>
-</td>
-<td class="px-4 py-4 text-sm">Maintenance</td>
-<td class="px-4 py-4 text-sm">2024-12-04</td>
-<td class="px-4 py-4">
-<select name="absence_status" class="text-sm border-slate-200 rounded-lg px-3 py-1 focus:ring-2 focus:ring-[#6b38d4]/20">
-<option value="en_attente">En attente</option>
-<option value="justifie" selected>Justifié</option>
-<option value="non_justifie">Non justifié</option>
-<option value="refuse">Refusé</option>
-</select>
-</td>
-<td class="px-4 py-4">
-<input type="text" name="justification" placeholder="Certificat médical, motif familial..." class="w-full text-sm border-slate-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#6b38d4]/20" value="Formation externe - convention"/>
-</td>
-<td class="px-4 py-4 text-right">
-<button class="px-3 py-1.5 bg-[#6b38d4] text-white text-xs font-semibold rounded-lg hover:bg-[#8455ef] transition-all">
-Enregistrer
-</button>
-</td>
-</tr>
-
-<!-- Absence 5 - Claire Rousseau -->
-<tr class="hover:bg-slate-50/80 transition-colors">
-<td class="px-4 py-4 border-b-0">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-[#e9ddff] flex items-center justify-center">
-<span class="text-xs font-bold text-[#6b38d4]">CR</span>
-</div>
-<span class="font-medium text-sm">Claire Rousseau</span>
-</div>
-</td>
-<td class="px-4 py-4 border-b-0 text-sm">Marketing</td>
-<td class="px-4 py-4 border-b-0 text-sm">2024-12-09</td>
-<td class="px-4 py-4 border-b-0">
-<select name="absence_status" class="text-sm border-slate-200 rounded-lg px-3 py-1 focus:ring-2 focus:ring-[#6b38d4]/20">
-<option value="en_attente" selected>En attente</option>
-<option value="justifie">Justifié</option>
-<option value="non_justifie">Non justifié</option>
-<option value="refuse">Refusé</option>
-</select>
-</td>
-<td class="px-4 py-4 border-b-0">
-<input type="text" name="justification" placeholder="Certificat médical, motif familial..." class="w-full text-sm border-slate-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#6b38d4]/20" value="Congés personnels"/>
-</td>
-<td class="px-4 py-4 text-right border-b-0">
-<button class="px-3 py-1.5 bg-[#6b38d4] text-white text-xs font-semibold rounded-lg hover:bg-[#8455ef] transition-all">
-Enregistrer
-</button>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-
-<!-- Résumé des absences par statut -->
-<div class="p-6 border-t border-slate-100 bg-slate-50/30">
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-<div class="bg-white rounded-lg p-3 text-center border border-slate-100">
-<p class="text-xs text-slate-500">En attente</p>
-<p class="text-2xl font-bold text-amber-600">2</p>
-</div>
-<div class="bg-white rounded-lg p-3 text-center border border-slate-100">
-<p class="text-xs text-slate-500">Justifiées</p>
-<p class="text-2xl font-bold text-green-600">2</p>
-</div>
-<div class="bg-white rounded-lg p-3 text-center border border-slate-100">
-<p class="text-xs text-slate-500">Non justifiées</p>
-<p class="text-2xl font-bold text-red-600">1</p>
-</div>
-<div class="bg-white rounded-lg p-3 text-center border border-slate-100">
-<p class="text-xs text-slate-500">Refusées</p>
-<p class="text-2xl font-bold text-slate-600">0</p>
-</div>
-</div>
-</div>
-</div>
 
 <!-- Note informative -->
-<div class="mt-6 p-4 bg-[#d8e2ff] rounded-xl flex items-start space-x-3">
-<span class="material-symbols-outlined text-[#004395]">info</span>
-<p class="text-xs leading-tight text-[#004395] font-medium">
-<strong>Note:</strong> Les modifications de statut et justifications sont enregistrables via formulaire avec méthode POST vers votre backend Laravel. Ce template intègre tous les champs nécessaires pour la gestion des workshifts (departement_id, date_debut, date_fin, check_in, check_out) et des absences (statut + justification).
-</p>
-</div>
+
 </div>
 </main>
+</div>
+
+<!-- Modal : Modifier Workshift -->
+<div v-if="showEditModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#6b38d4]">edit_calendar</span>
+                Modifier le Workshift
+            </h3>
+            <button @click="showEditModal = false" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form @submit="updateWorkshift" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="space-y-2">
+                <label class="font-semibold text-xs text-slate-700">Département <span class="text-red-500">*</span></label>
+                <select v-model="editForm.departement_id" required class="w-full border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] outline-none transition-all bg-white">
+                    <option value="">Sélectionner un département</option>
+                    <option v-for="dept in departements" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
+                </select>
+                <p v-if="editErrors.departement_id" class="text-red-500 text-xs">{{ editErrors.departement_id[0] }}</p>
+            </div>
+            <div class="space-y-2">
+                <label class="font-semibold text-xs text-slate-700">Date de début <span class="text-red-500">*</span></label>
+                <input v-model="editForm.date_debut" type="date" required class="w-full border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] outline-none transition-all" />
+                <p v-if="editErrors.date_debut" class="text-red-500 text-xs">{{ editErrors.date_debut[0] }}</p>
+            </div>
+            <div class="space-y-2">
+                <label class="font-semibold text-xs text-slate-700">Date de fin <span class="text-red-500">*</span></label>
+                <input v-model="editForm.date_fin" type="date" required class="w-full border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] outline-none transition-all" />
+                <p v-if="editErrors.date_fin" class="text-red-500 text-xs">{{ editErrors.date_fin[0] }}</p>
+            </div>
+            <div class="space-y-2">
+                <label class="font-semibold text-xs text-slate-700">Check-in <span class="text-red-500">*</span></label>
+                <input v-model="editForm.check_in" type="date" required class="w-full border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] outline-none transition-all" />
+                <p v-if="editErrors.check_in" class="text-red-500 text-xs">{{ editErrors.check_in[0] }}</p>
+            </div>
+            <div class="space-y-2">
+                <label class="font-semibold text-xs text-slate-700">Check-out <span class="text-red-500">*</span></label>
+                <input v-model="editForm.check_out" type="date" required class="w-full border border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] outline-none transition-all" />
+                <p v-if="editErrors.check_out" class="text-red-500 text-xs">{{ editErrors.check_out[0] }}</p>
+            </div>
+            <div class="md:col-span-2 flex gap-3 pt-2">
+                <button type="button" @click="showEditModal = false"
+                    class="flex-1 py-3 rounded-xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all text-sm">Annuler</button>
+                <button type="submit"
+                    class="flex-1 py-3 rounded-xl bg-[#6b38d4] hover:bg-[#8455ef] text-white font-bold transition-all text-sm flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-base">save</span> Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 </template>
