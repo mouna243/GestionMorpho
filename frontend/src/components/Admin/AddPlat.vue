@@ -111,10 +111,6 @@ onMounted(fetchPlats);
             <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
                 <div class="space-y-1">
                     <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
-                        <span class="material-symbols-outlined">help</span>
-                        <span>Aide</span>
-                    </a>
-                    <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
                         <span class="material-symbols-outlined">logout</span>
                         <span>Déconnexion</span>
                     </a>
