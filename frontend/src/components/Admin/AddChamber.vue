@@ -213,6 +213,11 @@ const deleteChamber = async (id) => {
                     <span class="material-symbols-outlined">king_bed</span>
                     <span><router-link to="/admin/chambers">Gestion des Chambers</router-link></span>
                 </a>
+                   <a class="text-violet-100 hover:text-white px-4 py-2 mx-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
+                    href="#">
+                    <span class="material-symbols-outlined">sentiment_calm</span>
+                    <span><router-link to="/admin/SpaSession">Gestion des SPA Sessions</router-link></span>
+                </a>
             </nav>
             <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
 
