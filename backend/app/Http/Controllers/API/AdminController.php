@@ -101,73 +101,58 @@ class AdminController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function updateRH(Request $request,User $user)
+    public function updateRH(Request $request, $id)
     {
-         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|unique:users',
-            'password' => 'required|string|confirmed|min:8',
-            'telephon' => 'required|string|min:10|max:20',
-            'CIN' => 'required|string|unique:users',
-            'age' => 'required|integer|min:18|max:100',
-            'salaire' => 'required|string',
-            'departement_id' => 'required|integer',
-            'experiences' => 'nullable|array',
-            "experiences.*.title" => 'string',
-            "experiences.*.description" => 'string',
-            "experiences.*.date_debut" => 'date',
-            "experiences.*.date_fin" => 'date',
-            "experiences.*.entreprise" => 'string',
-            'langages' => 'nullable|array',
-            "langages.*.name" => 'string',
-            "langages.*.level" => 'string',
-        ]);
-
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'telephon' => $request->telephon,
-            'CIN' => $request->CIN,
-            'age' => $request->age,
-            'role' => 'staff',
-            'salaire' => $request->salaire,
-            'departement_id' => $request->departement_id,
-            'experiences' => $request->experiences ?? [],
-            'langages' => $request->langages ?? [],
-        ]);
-        $user = $user->fresh();
-
-        if($user){
-            return response()->json([
-                'data' => $user,
-                "success" => true,
-                'message' => 'success'
-            ],200);
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'RH not found', 'success' => false], 404);
         }
-        return response()->json([
-            'message' => 'RH not found',
-            'seccess' => false
-        ],400);
+
+        $request->validate([
+            'name'           => 'required|string|max:255',
+            'email'          => 'required|string|email|unique:users,email,' . $id,
+            'password'       => 'nullable|string|confirmed|min:8',
+            'telephon'       => 'required|string|min:10|max:20',
+            'CIN'            => 'required|string|unique:users,CIN,' . $id,
+            'age'            => 'required|integer|min:18|max:100',
+            'salaire'        => 'required|string',
+            'departement_id' => 'required|integer',
+            'experiences'    => 'nullable|array',
+            'langages'       => 'nullable|array',
+        ]);
+
+        $data = [
+            'name'           => $request->name,
+            'email'          => $request->email,
+            'telephon'       => $request->telephon,
+            'CIN'            => $request->CIN,
+            'age'            => $request->age,
+            'salaire'        => $request->salaire,
+            'departement_id' => $request->departement_id,
+            'experiences'    => $request->experiences ?? [],
+            'langages'       => $request->langages ?? [],
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+
+        return response()->json(['data' => $user->fresh(), 'success' => true, 'message' => 'success'], 200);
     }
     /**
      * Remove the specified resource from storage.
      */
 
-    public function destroy(User $user)
+    public function destroy($id)
     {
-        $is_deleted = $user->delete();
-
-        if($is_deleted){
-            return response()->json([
-                'message' => 'staff is deleted',
-                'success' => true
-            ],204);
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'staff not found', 'success' => false], 404);
         }
-        return response()->json([
-            'message' => 'staff is not deleted',
-            'success' => false
-        ],400);
+        $user->delete();
+        return response()->json(['message' => 'staff is deleted', 'success' => true], 200);
     }
 
         
