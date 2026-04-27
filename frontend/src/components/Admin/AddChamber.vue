@@ -1,8 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
 
-const router = useRouter();
 let loading = ref(false);
 let error = ref(null);
 let allChambers = ref([]);
@@ -12,220 +10,170 @@ let editTypeForm = ref(false);
 let editChamberForm = ref(false);
 let currentType = ref(null);
 let currentChamber = ref(null);
-let dataType = ref([]);
-let dataAddType = reactive({
-    name: '',
-    description: '',
-    prix: ''
-})
-let dataEditType = reactive({
-    name: '',
-    description: '',
-    prix: ''
-})
 
-let dataAddChamber = reactive({
+let dataAddType = reactive({ name: '', description: '', prix: '', is_available: true });
+let dataEditType = reactive({ name: '', description: '', prix: '', is_available: true });
+let dataAddChamber = reactive({ name: '', image: null, description: '', is_available: true });
+let dataEditChamber = reactive({ name: '', image: null, description: '', is_available: true, chamber_type_id: null });
 
-    name: '',
-    image: null,
-    description: '',
-    is_available: '',
-})
-let dataEditChamber = reactive({
-    name: '',
-    image: null,
-    description: '',
-    is_available: '',
-})
 const openEditModal = (type) => {
     dataEditType.name = type.name;
     dataEditType.description = type.description;
     dataEditType.prix = type.prix;
-    dataEditType.is_available = type.is_available;
+    dataEditType.is_available = !!type.is_available;
     currentType.value = type.id;
+    editTypeForm.value = true;
 };
 
-const openEditChamberModal = (type) => {
-    dataEditChamber.name = type.name;
-    dataEditChamber.description = type.description;
-    dataEditChamber.is_available = type.is_available;
-    if (dataEditChamber.image instanceof File) {
-        formData.append('image', dataEditChamber.image);
-    }
-    dataEditChamber.chamber_type_id = type.chamber_type_id;
-    currentChamber.value = type.id;
+const openEditChamberModal = (chamber) => {
+    dataEditChamber.name = chamber.name;
+    dataEditChamber.description = chamber.description;
+    dataEditChamber.is_available = !!chamber.is_available;
+    dataEditChamber.image = null;
+    dataEditChamber.chamber_type_id = chamber.chamber_type_id;
+    currentChamber.value = chamber.id;
+    editChamberForm.value = true;
 };
 
-const handleEditFileUpload = (e) => {
-    const file = e.target.files[0];
-    dataEditChamber.image = file;
-};
-const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    dataAddChamber.image = file;
-};
-
+const handleEditFileUpload = (e) => { dataEditChamber.image = e.target.files[0]; };
+const handleFileUpload = (e) => { dataAddChamber.image = e.target.files[0]; };
 
 const gestionChambers = async () => {
-
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
     try {
         const response = await fetch('http://localhost:8080/api/chamberTypes');
         const json = await response.json();
-        allChambers.value = json.data.data;
-
-
-        if (!allChambers.ok) {
-            throw new Error(json.message || 'Failed to fetch rooms')
-        }
+        if (!response.ok) throw new Error(json.message || 'Failed to fetch');
+        allChambers.value = json.data.data ?? json.data;
     } catch (e) {
-        error.value = e.message
+        error.value = e.message;
     } finally {
-        loading.value = false
+        loading.value = false;
     }
+};
 
-
-}
 onMounted(gestionChambers);
 
 const addType = async () => {
+    loading.value = true;
+    error.value = null;
     try {
         const response = await fetch('http://localhost:8080/api/chamberTypes', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
                 name: dataAddType.name,
                 description: dataAddType.description,
                 prix: dataAddType.prix,
-                is_available: addTypeForm.is_available
+                is_available: dataAddType.is_available ? 1 : 0
             })
-        })
-
+        });
         const json = await response.json();
-        console.log(json);
-        if (!response.ok) {
-            throw new Error(json.message || 'Failed to fetch rooms');
-        }
-
-        addTypeForm.value = false
+        if (!response.ok) throw new Error(json.message || 'Failed');
+        addTypeForm.value = false;
+        dataAddType.name = ''; dataAddType.description = ''; dataAddType.prix = ''; dataAddType.is_available = true;
+        await gestionChambers();
     } catch (e) {
-        error.value = e.message
+        error.value = e.message;
     } finally {
-        loading.value = false
+        loading.value = false;
     }
-}
-
+};
 
 const addChamber = async () => {
-    error.value = null
-    loading.value = true
-
+    error.value = null;
+    loading.value = true;
     const formData = new FormData();
-
     formData.append('name', dataAddChamber.name);
     formData.append('image', dataAddChamber.image);
     formData.append('description', dataAddChamber.description);
     formData.append('is_available', dataAddChamber.is_available ? 1 : 0);
-    formData.append("chamber_type_id", currentType.value)
-
+    formData.append('chamber_type_id', currentType.value);
     try {
         const response = await fetch('http://localhost:8080/api/chambers', {
             method: 'POST',
             body: formData,
-            headers: {
-                'Accept': 'application/json'
-            }
-
-        })
-
+            headers: { 'Accept': 'application/json' }
+        });
         const json = await response.json();
-        if (!response.ok) {
-            throw new Error(json.message || 'Failed to fetch rooms');
-        }
-
-        addChamberForm.value = false
-        currentType.value = null
+        if (!response.ok) throw new Error(json.message || 'Failed');
+        addChamberForm.value = false;
+        currentType.value = null;
+        dataAddChamber.name = ''; dataAddChamber.image = null; dataAddChamber.description = ''; dataAddChamber.is_available = true;
+        await gestionChambers();
     } catch (e) {
-        error.value = e.message
+        error.value = e.message;
     } finally {
-        loading.value = false
+        loading.value = false;
     }
-}
+};
 
 const editType = async () => {
-    error.value = null
-    loading.value = true
-
-
+    error.value = null;
+    loading.value = true;
     try {
         const response = await fetch(`http://localhost:8080/api/chamberTypes/${currentType.value}`, {
             method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
                 name: dataEditType.name,
                 description: dataEditType.description,
                 prix: dataEditType.prix,
-                is_available: dataEditType.is_available
+                is_available: dataEditType.is_available ? 1 : 0
             })
-        })
+        });
         const json = await response.json();
-        if (!response.ok) {
-            throw new Error(json.message || 'Failed to fetch rooms');
-        }
-        editTypeForm.value = false
-        currentType.value = null
+        if (!response.ok) throw new Error(json.message || 'Failed');
+        editTypeForm.value = false;
+        currentType.value = null;
+        await gestionChambers();
     } catch (e) {
-        error.value = e.message
+        error.value = e.message;
     } finally {
-        loading.value = false
+        loading.value = false;
     }
-}
-
+};
 
 const editChamber = async () => {
-    error.value = null
-    loading.value = true
+    error.value = null;
+    loading.value = true;
     const formData = new FormData();
-
     formData.append('_method', 'PATCH');
     formData.append('name', dataEditChamber.name);
-    formData.append('image', dataEditChamber.image);
     formData.append('description', dataEditChamber.description);
     formData.append('is_available', dataEditChamber.is_available ? 1 : 0);
-    formData.append("chamber_type_id", dataEditChamber.chamber_type_id)
-
+    formData.append('chamber_type_id', dataEditChamber.chamber_type_id);
+    if (dataEditChamber.image instanceof File) formData.append('image', dataEditChamber.image);
     try {
         const response = await fetch(`http://localhost:8080/api/chambers/${currentChamber.value}`, {
             method: 'POST',
             body: formData,
-            headers: {
-                'Accept': 'application/json'
-            }
-
-        })
-
+            headers: { 'Accept': 'application/json' }
+        });
         const json = await response.json();
-        console.log(json);
-        if (!response.ok) {
-            throw new Error(json.message || 'Failed to fetch rooms');
-        }
-
-        editChamberForm.value = false
-        currentType.value = null
+        if (!response.ok) throw new Error(json.message || 'Failed');
+        editChamberForm.value = false;
+        currentChamber.value = null;
+        await gestionChambers();
     } catch (e) {
-        error.value = e.message
+        error.value = e.message;
     } finally {
-        loading.value = false
+        loading.value = false;
     }
-}
+};
 
+const deleteType = async (id) => {
+    if (!confirm('Supprimer ce type de chambre ?')) return;
+    await fetch(`http://localhost:8080/api/chamberTypes/${id}`, { method: 'DELETE' });
+    await gestionChambers();
+};
+
+const deleteChamber = async (id) => {
+    if (!confirm('Supprimer cette chambre ?')) return;
+    await fetch(`http://localhost:8080/api/chambers/${id}`, { method: 'DELETE' });
+    await gestionChambers();
+};
 </script>
 
 <template>
@@ -353,14 +301,14 @@ const editChamber = async () => {
                                             class="p-2 text-slate-400 hover:text-[#6b38d4] hover:bg-violet-50 rounded-lg transition-all">
                                             <span class="material-symbols-outlined">edit</span>
                                         </button>
-                                        <button
+                                        <button @click="deleteType(type.id)"
                                             class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
                                             <span class="material-symbols-outlined">delete</span>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="mt-4">
-                                    <button @click="addChamberForm = true; currentType.value = type.id"
+                                    <button @click="addChamberForm = true; currentType = type.id"
                                         class="text-sm bg-[#6b38d4] text-white px-4 py-2 rounded-lg hover:bg-[#8455ef] transition-all flex items-center gap-2">
                                         <span class="material-symbols-outlined text-base">add</span>
                                         Ajouter une chambre
@@ -381,10 +329,6 @@ const editChamber = async () => {
                                             <div class="flex items-center gap-3 flex-1">
                                                 <img :src="`http://localhost:8080/storage/${chamber.image}`"
                                                     class="w-12 h-12 rounded-lg object-cover">
-                                                `<div
-                                                    class="w-12 h-12 rounded-lg bg-slate-200 flex items-center justify-center">
-                                                    <span class="material-symbols-outlined text-slate-400">bed</span>
-                                                </div>
                                                 <div>
                                                     <p class="font-semibold text-slate-900">{{ chamber.name }}</p>
                                                     <p class="text-xs text-slate-500">{{ type.prix }}DH/nuit</p>
@@ -392,14 +336,14 @@ const editChamber = async () => {
                                             </div>
                                             <div class="flex items-center gap-3">
                                                 <span
-                                                    class="text-xs px-2 py-1 rounded-full ${room.is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                                    :class="chamber.is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
                                                     {{ chamber.is_available ? 'Disponible' : 'Indisponible' }}
                                                 </span>
                                                 <button @click="editChamberForm = true; openEditChamberModal(chamber)"
                                                     class="p-1.5 text-slate-400 hover:text-[#6b38d4] hover:bg-violet-50 rounded-lg transition-all">
                                                     <span class="material-symbols-outlined text-sm">edit</span>
                                                 </button>
-                                                <button
+                                                <button @click="deleteChamber(chamber.id)"
                                                     class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
                                                     <span class="material-symbols-outlined text-sm">delete</span>
                                                 </button>
@@ -414,8 +358,7 @@ const editChamber = async () => {
                 </template>
             </div>
             <!-- Modal Ajouter Type de Chambre -->
-            <div v-if="addTypeForm" id="typeModal"
-                class="fixed inset-0 z-50  items-center justify-center modal-overlay">
+            <div v-if="addTypeForm" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
                 <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
                     <div class="flex justify-between p-6 border-b border-slate-100">
                         <h3 id="typeModalTitle" class="text-xl font-semibold text-slate-900">Ajouter un Type de Chambre
@@ -473,8 +416,7 @@ const editChamber = async () => {
                 </div>
             </div>
             <!--Modal modifier type de chamber -->
-            <div v-if="editTypeForm" id="typeModal"
-                class="fixed inset-0 z-50  items-center justify-center modal-overlay">
+            <div v-if="editTypeForm" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
                 <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
                     <div class="flex justify-between p-6 border-b border-slate-100">
                         <h3 id="typeModalTitle" class="text-xl font-semibold text-slate-900">Editer un Type de Chambre
@@ -530,8 +472,7 @@ const editChamber = async () => {
                 </div>
             </div>
             <!-- Modal Ajouter Chambre -->
-            <div v-if="addChamberForm" id="roomModal"
-                class="fixed inset-0 z-50  items-center justify-center modal-overlay">
+            <div v-if="addChamberForm" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
                 <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
                     <div class="flex justify-between p-6 border-b border-slate-100">
                         <h3 id="roomModalTitle" class="text-xl font-semibold text-slate-900">Ajouter une Chambre</h3>
@@ -584,8 +525,7 @@ const editChamber = async () => {
                 </div>
             </div>
             <!-- Modal modifier Chambre -->
-            <div v-if="editChamberForm" id="roomModal"
-                class="fixed inset-0 z-50  items-center justify-center modal-overlay">
+            <div v-if="editChamberForm" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
                 <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
                     <div class="flex justify-between p-6 border-b border-slate-100">
                         <h3 id="roomModalTitle" class="text-xl font-semibold text-slate-900">Modifier une Chambre</h3>
