@@ -35,7 +35,8 @@ class TypeSpaSessionController extends Controller
         $typeSpaSession = TypeSpaSession::create([
             'name' => $request->name,
             'description' => $request->description,
-            'prix' => $request->prix
+            'prix' => $request->prix,
+            'status' => $request->is_available ?? 1
         ]);
         if (!$typeSpaSession) {
 
@@ -67,7 +68,7 @@ class TypeSpaSessionController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'prix' => $request->prix,
-            'is_available' => $request->is_available
+            'status' => $request->is_available ?? $typeSpaSession->status
         ]);
 
         if ($is_updated) {
