@@ -175,11 +175,7 @@ onMounted(fetchDepartements);
             <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
 
                 <div class="space-y-1">
-                    <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                        href="#">
-                        <span class="material-symbols-outlined" data-icon="help">help</span>
-                        <span>Aide</span>
-                    </a>
+                
                     <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
                         href="#">
                         <span class="material-symbols-outlined" data-icon="logout">logout</span>
@@ -193,31 +189,19 @@ onMounted(fetchDepartements);
         <header
             class="fixed top-0 right-0 w-[calc(100%-260px)] h-16 z-40 bg-white/80 backdrop-blur-md flex justify-between items-center px-8 shadow-sm border-b border-slate-100">
             <div class="flex items-center space-x-4 flex-1">
-                <div class="relative max-w-md w-full">
-                    <span
-                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
-                    <input
-                        class="w-full bg-slate-50 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#6b38d4]/20 placeholder:text-slate-400"
-                        placeholder="Rechercher un département..." type="text" />
-                </div>
+                <h2 class="text-xl font-bold text-gray-900 font-plus-jakarta">Gestion des departements</h2>
             </div>
             <div class="flex items-center space-x-6">
                 <div class="flex items-center space-x-4">
-                    <button class="text-slate-500 hover:text-[#6b38d4] transition-colors relative">
-                        <span class="material-symbols-outlined">notifications</span>
-                        <span
-                            class="absolute top-0 right-0 w-2 h-2 bg-red-600 rounded-full border-2 border-white"></span>
-                    </button>
-                    <button class="text-slate-500 hover:text-[#6b38d4] transition-colors">
-                        <span class="material-symbols-outlined">help_outline</span>
-                    </button>
+               
                 </div>
-                <div class="h-8 w-px bg-slate-200 mx-2"></div>
-                <button
-                    class="flex items-center space-x-2 text-slate-900 font-medium hover:text-[#6b38d4] transition-colors">
-                    <span class="text-sm font-semibold">Morpho Gestion</span>
-                    <span class="material-symbols-outlined text-[#6b38d4]">expand_more</span>
-                </button>
+              
+              <div class="flex items-center gap-4 border-l pl-6 border-gray-200">
+                <div class="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </div>
+                <span class="text-sm font-bold text-gray-700">Admin</span>
+            </div>
             </div>
         </header>
 
@@ -227,16 +211,11 @@ onMounted(fetchDepartements);
             <div class="max-w-7xl mx-auto space-y-8">
                 <!-- Page Header -->
                 <div class="flex justify-between items-end">
-                    <div>
+                    <div class="gap-5">
                         <h2 class="text-[28px] leading-9 font-bold text-slate-900">Gestion des Départements</h2>
                         <p class="text-[#494454] text-sm">Organisez et gérez votre structure organisationnelle.</p>
                     </div>
-                    <div class="flex space-x-3">
-                        <button
-                            class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all flex items-center gap-2">
-                            <span class="material-symbols-outlined text-lg">download</span> Exporter
-                        </button>
-                    </div>
+
                 </div>
 
                 <!-- Bento Layout Content -->
