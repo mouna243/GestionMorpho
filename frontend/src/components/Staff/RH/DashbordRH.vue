@@ -65,10 +65,10 @@ onMounted(async () => {
           <span class="font-body-md">Gestion des personnel</span>
         </a>
         </router-link>
-        <router-link to="/RH/taches">
+          <router-link to="/RH/Absences">
         <a class="text-white/80 hover:bg-[#5db8b4]/50 rounded-full mx-4 px-4 py-3 flex items-center gap-3 transition-all scale-95 active:scale-90" href="#">
-          <span class="material-symbols-outlined" data-icon="assignment">assignment</span>
-          <span class="font-body-md">Taches</span>
+          <span class="material-symbols-outlined" data-icon="group">group</span>
+          <span class="font-body-md">Gestion des Absences</span>
         </a>
         </router-link>
       </nav>
