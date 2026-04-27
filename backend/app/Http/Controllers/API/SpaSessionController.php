@@ -85,8 +85,9 @@ class SpaSessionController extends Controller
         $request->validate([
             'type_spa_session_id' => 'required|integer',
             'date_debut' => 'required|date',
-            'date_fin' => 'required|date'
-        ]); 
+            'date_fin' => 'required|date',
+            'is_validated' => 'nullable|boolean',
+        ]);
 
         $type = TypeSpaSession::find($request->type_spa_session_id);
 
@@ -94,20 +95,15 @@ class SpaSessionController extends Controller
             'type_spa_session_id' => $request->type_spa_session_id,
             'date_debut' => $request->date_debut,
             'date_fin' => $request->date_fin,
-            'prix'=> $type->prix
+            'prix' => $type->prix,
+            'is_validated' => $request->is_validated ?? $spaSession->is_validated,
         ]);
 
-        if ($spaSession) {
-            return response()->json([
-                'data' => $spaSession,
-                'success' => true,
-                'message' => 'success'
-            ],200);
-        }
         return response()->json([
-            'message' => 'spaSession not updated',
-            'success' => false
-        ],400);
+            'data' => $spaSession->fresh(),
+            'success' => true,
+            'message' => 'success'
+        ], 200);
     }
 
     /**
