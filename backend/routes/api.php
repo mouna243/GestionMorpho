@@ -36,6 +36,8 @@ Route::prefix('auth')->group(function () {
     /* Gestion des staff */
     Route::prefix('admin')->group(function () {
         Route::get('/', [AdminController::class, 'index']);
+        Route::get('/stats', [AdminController::class, 'stats']);
+        Route::get('/absences', [AdminController::class, 'absences']);
         Route::prefix('staff')->group(function () {
             Route::get('/all', [StaffController::class, 'index']);
             Route::get('/{id}', [StaffController::class, 'Show']);
