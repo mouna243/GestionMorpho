@@ -69,11 +69,11 @@ Route::prefix('auth')->group(function () {
 
 
 
+    /* Gestion des absences */
+    Route::apiResource('absences', AbscenceController::class);
+
 /* RH Routes */
 Route::middleware(['auth:sanctum', 'role:staff', 'departement:RH'])->group(function () {
-
-    /* Gestion des abcences */
-    Route::apiResource('absences', AbscenceController::class);
     /* Gestion des staff */
     Route::apiResource('rh', RHController::class)->only('update');
     Route::get('rh/{id}', [RHController::class, 'storeStaff']);
@@ -81,12 +81,11 @@ Route::middleware(['auth:sanctum', 'role:staff', 'departement:RH'])->group(funct
 
 
 
-/* Chef personnel Routes */
-Route::middleware(['auth:sanctum', 'role:staff', 'departement:ChefPersonnel'])->group(function () {
-
     /* Gestion des tasks */
     Route::apiResource('tasks', TaskController::class);
 
+/* Chef personnel Routes */
+Route::middleware(['auth:sanctum', 'role:staff', 'departement:ChefPersonnel'])->group(function () {
 });
 
 
