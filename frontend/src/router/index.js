@@ -4,7 +4,6 @@ import Register from "../components/Auth/Register.vue";
 import Login from "../components/Auth/Login.vue";
 import Chambers from "../components/Client/Room/Chambers.vue";
 import Plats from "../components/Client/Resto/Plats.vue";
-import MyReservation from "../components/Client/Room/MyReservation.vue";
 import SPA from "../components/Client/spa/allSaps.vue";
 import adminDashboard from "../components/Admin/dashbordAdmin.vue"
 import AddPlat from "../components/Admin/AddPlat.vue"
@@ -17,7 +16,7 @@ import DashbordChef from "../components/Staff/ChefPersonnel/DashbordChef.vue"
 import Absences from "../components/Staff/RH/GestionAbsences.vue"
 import DashbordStaff from "../components/Staff/DashbordStaff.vue";
 import AddSpaSession from "../components/Admin/AddSpa.vue"
-
+import Profile from "../components/Client/profile.vue"
 const routes = [
 
     // Auth views
@@ -50,14 +49,14 @@ const routes = [
     component: Plats,
   },
   {
-    path: "/reservation",
-    name: "reservation",
-    component: MyReservation,
-  },
-  {
     path: "/SPA",
     name: "SPA",
     component: SPA,
+  },
+  {
+    path:"/client/profile",
+    name:"profile",
+    component:Profile
   },
 // Admin views
 
