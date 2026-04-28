@@ -92,10 +92,10 @@ class AuthController
         ], 200);
     }
 
-    public function me(){
+    public function me(Request $request){
         return response()->json(
             [
-                'user' => Auth::user(),
+                'user' => $request->user(),
                 'message' => 'user logged in successfully'
             ]
             ,
