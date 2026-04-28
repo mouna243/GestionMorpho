@@ -28,12 +28,13 @@ class CommandeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, Service $service)
+    public function store(Request $request)
     {
         $request->validate([
             'plats' => 'required|array',
             'plats.*.plat_id' => 'required|integer',
             'plats.*.quantite' => 'required|integer',
+            'client_id' => 'required|integer',
         ]);
 
         $date = now();
@@ -42,11 +43,14 @@ class CommandeController extends Controller
             $prix += $plat['quantite'] * Plat::find($plat['plat_id'])->prix;
         }
 
+        // find or use first service (Restoration)
+        $service = Service::first();
+
         $commande = Commande::create([
             'date' => $date,
             'prix' => $prix,
-            'client_id' => auth()->user()->id,
-            'service_id' => $service->id,
+            'client_id' => $request->client_id,
+            'service_id' => $service?->id ?? 1,
         ]);
 
         foreach ($request->plats as $plat) {
