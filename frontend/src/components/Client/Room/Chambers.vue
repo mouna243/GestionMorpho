@@ -1,37 +1,86 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-let roomList = ref([])
-let error = ref(null)
-let loading = ref(false)
+const roomList = ref([]);
+const error = ref(null);
+const loading = ref(false);
+
+// reservation modal
+const showModal = ref(false);
+const selectedRoom = ref(null);
+const resForm = ref({ date_enter: '', date_sortie: '' });
+const resError = ref('');
+const resSuccess = ref('');
+const resLoading = ref(false);
+
+const me = reactive(JSON.parse(localStorage.getItem('user') || 'null'));
 
 const chambers = async () => {
-  try {
-    error.value = null
-    loading.value = true
-    const result = await fetch('http://localhost:8080/api/chambers');
-    const json = await result.json();
-    roomList.value = json.data.data
-
-    console.log(roomList.value[0].chamber_type.prix)
-    if (!result.ok) {
-      throw new Error(roomList.message || 'Failed to fetch rooms');
+    try {
+        error.value = null;
+        loading.value = true;
+        // refresh user from API to ensure we have the correct id
+        const token = localStorage.getItem('token');
+        if (token) {
+            const meRes = await fetch('http://localhost:8080/api/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            });
+            if (meRes.ok) {
+                const meJson = await meRes.json();
+                me.value = meJson.user;
+                localStorage.setItem('user', JSON.stringify(meJson.user));
+            }
+        }
+        const result = await fetch('http://localhost:8080/api/chambers');
+        const json = await result.json();
+        if (!result.ok) throw new Error(json.message || 'Failed to fetch rooms');
+        roomList.value = json.data.data ?? json.data;
+    } catch (e) {
+        error.value = e.message;
+    } finally {
+        loading.value = false;
     }
-  } catch (e) {
-    error.value = e.message
-    console.log(error.value)
-  } finally {
-    loading.value = false
-  }
+};
 
+function openReservation(room) {
+    selectedRoom.value = room;
+    resForm.value = { date_enter: '', date_sortie: '' };
+    resError.value = '';
+    resSuccess.value = '';
+    showModal.value = true;
 }
 
-onMounted(async () => {
-  await chambers()
-})
+async function submitReservation(e) {
+    e.preventDefault();
+    resError.value = '';
+    resSuccess.value = '';
+    resLoading.value = true;
 
+ 
+    
+
+    const prix = selectedRoom.value.chamber_type?.prix ?? 0;
+    const res = await fetch('http://localhost:8080/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({
+            date_enter: resForm.value.date_enter,
+            date_sortie: resForm.value.date_sortie,
+            prix: prix,
+            chamber_id: selectedRoom.value.id,
+            user_id: me?.id ?? 1
+        })
+    });
+    const json = await res.json();
+    resLoading.value = false;
+    if (!res.ok) { resError.value = json.message ?? 'Erreur lors de la réservation'; return; }
+    resSuccess.value = 'Réservation effectuée avec succès !';
+    setTimeout(() => { showModal.value = false; }, 1500);
+}
+
+onMounted(chambers);
 </script>
 
 <template>
@@ -99,8 +148,7 @@ onMounted(async () => {
                 class="relative overflow-hidden arch-mask h-[500px] bg-surface-container-low transition-all duration-500 hover:shadow-2xl">
                 <img alt="Luxury Moroccan Suite with amber lighting"
                   class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  data-alt="luxury Moroccan suite interior with warm amber lighting, ornate carved wood details, and plush terracotta textiles at dusk"
-                  :src="room.image" />
+                  :src="`http://localhost:8080/storage/${room.image}`" />
                 <div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent"></div>
               </div>
               <div class="mt-8 space-y-4">
@@ -116,9 +164,10 @@ onMounted(async () => {
                     <span class="font-label text-[10px] uppercase tracking-widest">{{ room.is_available ? 'Available' : 'Not Available' }}</span>
                   </div>
                 </div>
-                <button
-                  class="w-full mt-4 py-4 rounded-full border border-outline-variant/30 font-label text-[10px] uppercase tracking-[0.2em] hover:bg-primary hover:text-on-primary hover:border-transparent transition-all duration-300">View
-                  Details</button>
+                <button @click="openReservation(room)"
+                  class="w-full mt-4 py-4 rounded-full border border-outline-variant/30 font-label text-[10px] uppercase tracking-[0.2em] hover:bg-primary hover:text-on-primary hover:border-transparent transition-all duration-300">
+                  Réserver
+                </button>
               </div>
             </div>
           </div>
@@ -176,6 +225,53 @@ onMounted(async () => {
           Sensory Riad. A sanctuary of the soul.</div>
       </div>
     </footer>
+  </div>
+
+  <!-- Modal Réservation -->
+  <div v-if="showModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-[#fcf9ef] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div class="px-8 py-6 border-b border-[#9a401f]/10 flex items-center justify-between">
+        <div>
+          <h3 class="font-headline text-2xl text-[#9a401f]">Réserver</h3>
+          <p class="text-sm text-[#755717]/70 mt-0.5 font-light">{{ selectedRoom?.name }}</p>
+        </div>
+        <button @click="showModal = false" class="p-2 text-[#9a401f]/50 hover:text-[#9a401f] hover:bg-[#9a401f]/10 rounded-full transition-all">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form @submit.prevent="submitReservation" class="px-8 py-6 space-y-5">
+        <div v-if="resSuccess" class="p-3 bg-green-50 text-green-700 rounded-xl text-sm font-semibold flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">check_circle</span>{{ resSuccess }}
+        </div>
+        <div v-if="resError" class="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-semibold flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">error</span>{{ resError }}
+        </div>
+        <div class="space-y-1.5">
+          <label class="font-label text-[10px] uppercase tracking-widest text-[#755717]">Date d'arrivée</label>
+          <input v-model="resForm.date_enter" type="date" required
+            class="w-full bg-transparent border-0 border-b border-[#9a401f]/20 py-3 px-0 text-[#9a401f] focus:ring-0 focus:border-[#9a401f] transition-all" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="font-label text-[10px] uppercase tracking-widest text-[#755717]">Date de départ</label>
+          <input v-model="resForm.date_sortie" type="date" required
+            class="w-full bg-transparent border-0 border-b border-[#9a401f]/20 py-3 px-0 text-[#9a401f] focus:ring-0 focus:border-[#9a401f] transition-all" />
+        </div>
+        <div class="pt-2 p-4 bg-[#9a401f]/5 rounded-2xl">
+          <div class="flex justify-between items-center">
+            <span class="font-label text-[10px] uppercase tracking-widest text-[#755717]">Prix / nuit</span>
+            <span class="font-headline text-xl text-[#9a401f]">{{ selectedRoom?.chamber_type?.prix ?? '—' }} DH</span>
+          </div>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" @click="showModal = false"
+            class="flex-1 py-3 rounded-full border border-[#9a401f]/20 font-label text-[10px] uppercase tracking-widest text-[#9a401f] hover:bg-[#9a401f]/5 transition-all">Annuler</button>
+          <button type="submit" :disabled="resLoading"
+            class="flex-1 py-3 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-label text-[10px] uppercase tracking-widest hover:scale-[1.02] transition-all">
+            {{ resLoading ? 'En cours...' : 'Confirmer' }}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
 </template>
