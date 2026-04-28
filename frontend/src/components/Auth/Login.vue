@@ -14,50 +14,54 @@ const user = reactive(
 const error = ref(null);
 const loading = ref(false) ;
 const validationErrors = ref({});
-const login = async ()=> {
+const login = async () => {
   error.value = null
   loading.value = true
   validationErrors.value = {}
 
-  try{
-    const result = await fetch('http://localhost:8080/api/auth/login',{
-      method : 'POST',
-      headers : {
-        'Content-Type' : 'application/json',
-      },
-      body: JSON.stringify({
-          email : user.email,
-          password : user.password
-      })
-    
-      
-    
+  try {
+    const result = await fetch('http://localhost:8080/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ email: user.email, password: user.password })
     })
 
-    
-    const data = await result.json() ;
+    const data = await result.json()
 
-    //next page
-    if(data.role === 'staff'){
-      router.push('/staff')
-    }else if(data.role === 'admin'){
-      router.push('/admin')
-    }else if(data.role === 'client'){
+    if (!result.ok) {
+      validationErrors.value = data.errors ?? {}
+      throw new Error(data.message || 'Login failed')
+    }
+
+    // store token
+    localStorage.setItem('token', data.token)
+
+    console.log(data.token);
+    
+
+    // fetch authenticated user to get role
+    const meRes = await fetch('http://localhost:8080/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${data.token}`, 'Accept': 'application/json' }
+    })
+    const meData = await meRes.json()
+    const role = meData.user?.role
+    
+    localStorage.setItem('user', JSON.stringify(meData.user.id))
+
+    if (role === 'admin') {
+      router.push('/admin/dashboard')
+    } else if (role === 'staff') {
+      router.push('/Staff/dashbord')
+    } else if (role === 'client') {
+      router.push('/')
+    } else {
       router.push('/')
     }
 
-    if(!result.ok){
-      validationErrors.value = data.errors
-      throw new Error (data.message || 'login failed')
-
-    }
-  
-  }catch(e) {
-   error.value = e.message
-   console.log( error.value)
-   console.log('the validation is : ' , validationErrors.value)
-  }finally{
-    loading.value = false 
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -100,7 +104,10 @@ const login = async ()=> {
               <h1 class="font-headline text-4xl text-on-surface">Welcome back</h1>
               <p class="text-on-surface-variant font-light">Please enter your credentials to access your sanctuary.</p>
             </div>
-            <form class="space-y-8" @submit.prevent = "login">
+            <form class="space-y-8" @submit.prevent="login">
+              <div v-if="error" class="p-3 bg-red-50 text-red-600 rounded-lg text-sm font-semibold flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">error</span>{{ error }}
+              </div>
               <div class="space-y-6">
                 <!-- Email Input -->
                 <div class="group">
