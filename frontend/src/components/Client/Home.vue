@@ -1,11 +1,6 @@
-<script>
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
-const auth = computed(() => {
-  return !!localStorage.getItem('token')
-})
+<script setup>
+import { useAuth } from '../../composables/useAuth.js';
+const { isLoggedIn, user, logout } = useAuth();
 </script>
 
 <template>
@@ -35,21 +30,23 @@ const auth = computed(() => {
         </router-link>
       </div>
       <div class="flex items-center gap-6">
-        <button
-          class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-500 ease-in-out active:opacity-80 active:scale-95">
-          <div v-if="!auth">
-             <router-link to="/client/profile">
-              <span class="material-symbols-outlined">person</span>
-            </router-link>
-            <!-- icone logout -->
-             <router-link to="/logout">Logout</router-link>
-              
-          </div>
-          <div v-else>
-              <router-link to="/login">Login</router-link>
-          </div>
-
-        </button>
+        <template v-if="isLoggedIn">
+          <router-link to="/client/profile"
+            class="font-label text-sm uppercase tracking-widest text-[#9a401f] hover:text-[#755717] transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-xl">account_circle</span>
+            {{ user?.name?.split(' ')[0] }}
+          </router-link>
+          <button @click="logout"
+            class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-300">
+            Logout
+          </button>
+        </template>
+        <template v-else>
+          <router-link to="/login"
+            class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-300">
+            Login
+          </router-link>
+        </template>
       </div>
     </nav>
     <main>
@@ -84,56 +81,12 @@ const auth = computed(() => {
               <p class="text-on-surface-variant leading-relaxed">Each suite is a curated narrative of silk, cedar, and
                 stone. Private alcoves designed for the modern nomad.</p>
             </div>
+            <router-link to="/room">
             <a class="text-tertiary font-label text-sm uppercase tracking-widest border-b border-tertiary/30 pb-2 hover:border-tertiary transition-colors"
-              href="#">View All Suites</a>
+             >View All Suites</a>
+             </router-link>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-12">
-            <!-- Suite 1 -->
-            <div class="md:col-span-7 group cursor-pointer">
-              <div class="relative overflow-hidden arch-mask mb-8 aspect-[4/5]">
-                <img alt="The Royal Suite"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  data-alt="luxurious moroccan suite bedroom with ornate carved wood ceiling, deep blue zellige tile details, and warm golden lighting"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKxvEvl-VyHOZ8Vd_WZHPs_7OUzpOqDDw3yqJHyu_D9iHTeJQAey0hU3X4oQSRUJAN5RxkV2NgpEVoT0IH16iD-z0UIIfCKCDe3LaUxENIZTez9GytOPHglNuTn5GA2IfbHhg6SVETIJwF0xpWyr6iWDpF04Rjavpnlj7oCIi457pIgQRpiwCVTyUukpom4SsgkrQdY6kU6hRBOq3581X4to9EMgYd-fbqOo-V4VDJTvNA35KGKL_c-1CjF8NamixXlwsZJSlHCIHH" />
-                <div class="absolute top-8 right-8 bg-surface/90 backdrop-blur-md px-6 py-2 rounded-full shadow-sm">
-                  <span class="font-label text-xs uppercase text-primary">Available</span>
-                </div>
-              </div>
-              <div class="flex justify-between items-start">
-                <div>
-                  <h3 class="font-headline text-3xl mb-2">The Amber Suite</h3>
-                  <p class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Master Level • Private
-                    Terrace</p>
-                </div>
-                <span class="font-headline text-2xl text-tertiary">€850</span>
-              </div>
-            </div>
-            <!-- Suite 2 -->
-            <div class="md:col-span-5 flex flex-col gap-12 mt-24">
-              <div class="group cursor-pointer">
-                <div class="relative overflow-hidden rounded-xl mb-6 aspect-square">
-                  <img alt="Courtyard Room"
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    data-alt="minimalist boutique hotel room with clean white linens, terracotta walls, and a single arched window showing garden"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiRIXS5bc2PVFg9Ou_vkURQVKlxzR4geeLqO0-o_oSL-fLF-t2xl1AAgHTJWjr2GOCS_p6QLBx1s9YVveMW8_L5BYxEVJa8vMnLtFVNTfdhOt83BEx4BTNoZxzuanblxS1HiB6dpVF73PGRRaiqci0uWx2mz2GwhWmCgV75e-z1uZ28NpWPF6x1-lr8c-sUHRCREX7sZlXiSQBMrqbNuRQY38wGoLNkXwC51RNjqNb8aUWh66lS0RpP7irVj6X4GVn0JMERNTOizVp" />
-                </div>
-                <h3 class="font-headline text-2xl mb-1">Atlas View Loft</h3>
-                <p class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Mountain Vista •
-                  Solarium</p>
-              </div>
-              <div class="group cursor-pointer">
-                <div class="relative overflow-hidden rounded-xl mb-6 aspect-square">
-                  <img alt="Garden Room"
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    data-alt="intimate guest room with soft linen textures, candle lighting, and authentic moroccan decorative artifacts"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmZqOg4uthf0tkOIWHrcRS_H8J1CHKRxTgCEdlQvCayJCbvC63APSVBMUtOvWTpNHZF9e9zkzQ_rrwKl0jdUtBKaVtb-_h3RPk_j9WeBtFHX_k5GsRtC-D-l6wjZkOHbG0TSijwisRltBzUdilJXc_M5I3lXcAClA54SFILqBqQqjnRG2OZtQ67lVkA4vuDMO_pCJp5qebxiC0mgUXwgfX1zaL1uFSQYqklSp_hGoYR-IkK6UaYm9Gf0vJQ2Kn8VZs5P8FV_BZZcO3" />
-                </div>
-                <h3 class="font-headline text-2xl mb-1">Medina Garden Room</h3>
-                <p class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Garden Level • Hammam
-                  Shower</p>
-              </div>
-            </div>
-          </div>
+         
         </div>
       </section>
       <!-- Experiences with Large Typography -->
