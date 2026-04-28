@@ -85,29 +85,41 @@ onMounted(chambers);
 
 <template>
   <div class="bg-surface text-on-surface font-body selection:bg-primary-fixed-dim">
-    <!-- TopAppBar -->
-    <header
-      class="bg-[#fcf9ef]/80 dark:bg-stone-900/80 backdrop-blur-md text-[#9a401f] dark:text-[#c05c39] docked full-width top-0 sticky z-50 shadow-[0_20px_40px_rgba(28,28,22,0.06)]">
-          <nav
+        <!-- TopAppBar -->
+    <nav
       class="fixed top-0 w-full z-50 flex justify-between items-center px-12 py-6 max-w-screen-2xl mx-auto bg-[#fcf9ef]/80 backdrop-blur-md shadow-[0_20px_40px_rgba(28,28,22,0.06)]">
       <div class="font-serif text-2xl uppercase tracking-[0.2em] text-[#9a401f]"><router-link to="/">Kasbah Royale</router-link></div>
       <div class="hidden md:flex items-center gap-8">
-        <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300"
-          href="/">The Riad</a>
-        <a class="font-noto-serif text-lg tracking-tight text-[#755717] border-b-2 border-[#755717] pb-1 font-semibold"
-          > <router-link to="/room">Suites</router-link></a>
-        <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300"
-          ><router-link to="/SPA">SPA</router-link></a>
+        <router-link to="/">
+          <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300" >Home</a>
+        </router-link>
+          <router-link to="/room">
+       <a class="font-noto-serif text-lg tracking-tight text-[#755717] border-b-2 border-[#755717] pb-1 font-semibold"
+         >Room</a>
+        </router-link>
+        <router-link to="/SPA">
+        <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300" >SPA</a>
+        </router-link>
+        <router-link to="/menu">
+        <a class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300">Menu</a>
+        </router-link>
       </div>
-        <div class="flex items-center gap-6">
-          <button
-            class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-300">Book
-            Now</button>
-          <span class="material-symbols-outlined cursor-pointer text-2xl hover:text-tertiary transition-colors"
-            data-icon="account_circle">account_circle</span>
-        </div>
-      </nav>
-    </header>
+      <div class="flex items-center gap-6">
+        <button
+          class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-500 ease-in-out active:opacity-80 active:scale-95">
+          <div v-if="!auth">
+              <router-link to="/login">Login</router-link>
+          </div>
+          <div v-else>
+            <router-link to="/client/profile">
+                 <span class="material-symbols-outlined">person</span>
+            </router-link>
+          </div>
+                 
+        </button>
+      </div>
+    </nav>
+    
     <main class="zellige-pattern min-h-screen">
       <!-- Hero Section -->
       <section class="relative pt-24 pb-12 px-12 max-w-screen-2xl mx-auto overflow-hidden">
