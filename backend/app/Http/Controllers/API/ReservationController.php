@@ -29,15 +29,17 @@ class ReservationController extends Controller
             'date_enter' => 'required|date',
             'date_sortie' => 'required|date',
             'prix' => 'required|numeric',
-            'chamber_id' => 'required|integer'
+            'chamber_id' => 'required|integer',
+            'user_id' => 'required|integer',
         ]);
 
         $reservation = Reservation::create([
-            'date_enter' => $request->date_entrer,
+            'date_enter' => $request->date_enter,
             'date_sortie' => $request->date_sortie,
             'prix' => $request->prix,
-            'client_id' => auth()->user()->id,
-            'chamber_id' => $request->chamber_id
+            'user_id' => $request->user_id,
+            'chamber_id' => $request->chamber_id,
+            'chamber' => $request->chamber_id,
         ]);
 
         if ($reservation) {
