@@ -25,7 +25,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 });
 
 
@@ -93,11 +93,11 @@ Route::middleware(['auth:sanctum', 'role:staff', 'departement:ChefPersonnel'])->
     /* Gestion des spaSessions */
     Route::apiResource('spaSessions', SpaSessionController::class);
 
-/* Client Routes */
-Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
-
     /* Gestion des reservations */
     Route::apiResource('reservations', ReservationController::class);
+
+/* Client Routes */
+Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
 
     /* Gestion des payments */
     Route::apiResource('payments', PaymentController::class)->except('update');
