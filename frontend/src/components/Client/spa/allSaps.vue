@@ -1,5 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useAuth } from '../../../composables/useAuth.js';
+
+const { isLoggedIn, user: authUser, logout } = useAuth();
 
 const types = ref([]);
 const loading = ref(false);
@@ -80,18 +83,23 @@ onMounted(fetchTypes);
         </router-link>
       </div>
       <div class="flex items-center gap-6">
-        <button
-          class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-500 ease-in-out active:opacity-80 active:scale-95">
-          <div v-if="!auth">
-            <router-link to="/login">Login</router-link>
-          </div>
-          <div v-else>
-            <router-link to="/client/profile">
-              <span class="material-symbols-outlined">person</span>
-            </router-link>
-          </div>
-
-        </button>
+        <template v-if="isLoggedIn">
+          <router-link to="/client/profile"
+            class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300 flex items-center gap-1">
+            <span class="material-symbols-outlined">account_circle</span>
+            {{ authUser?.name?.split(' ')[0] }}
+          </router-link>
+          <button @click="logout"
+            class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-xs uppercase tracking-[0.15em] hover:scale-105 transition-all duration-300 shadow-lg">
+            Logout
+          </button>
+        </template>
+        <template v-else>
+          <router-link to="/login"
+            class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-xs uppercase tracking-[0.15em] hover:scale-105 transition-all duration-300 shadow-lg">
+            Login
+          </router-link>
+        </template>
       </div>
     </nav>
     <main class="pt-24 zellige-pattern">
