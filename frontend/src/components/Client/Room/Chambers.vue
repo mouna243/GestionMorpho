@@ -1,8 +1,10 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '../../../composables/useAuth.js';
 
 const router = useRouter();
+const { isLoggedIn, user: authUser, logout } = useAuth();
 const roomList = ref([]);
 const error = ref(null);
 const loading = ref(false);
@@ -15,7 +17,7 @@ const resError = ref('');
 const resSuccess = ref('');
 const resLoading = ref(false);
 
-const me = reactive(JSON.parse(localStorage.getItem('user') || 'null'));
+const me = ref(JSON.parse(localStorage.getItem('user') || 'null'));
 
 const chambers = async () => {
     try {
@@ -70,7 +72,7 @@ async function submitReservation(e) {
             date_sortie: resForm.value.date_sortie,
             prix: prix,
             chamber_id: selectedRoom.value.id,
-            user_id: me?.id ?? 1
+            user_id: me.value?.id
         })
     });
     const json = await res.json();
@@ -105,18 +107,23 @@ onMounted(chambers);
         </router-link>
       </div>
       <div class="flex items-center gap-6">
-        <button
-          class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-500 ease-in-out active:opacity-80 active:scale-95">
-          <div v-if="!auth">
-              <router-link to="/login">Login</router-link>
-          </div>
-          <div v-else>
-            <router-link to="/client/profile">
-                 <span class="material-symbols-outlined">person</span>
-            </router-link>
-          </div>
-                 
-        </button>
+        <template v-if="isLoggedIn">
+          <router-link to="/client/profile"
+            class="font-noto-serif text-lg tracking-tight text-[#436182] hover:text-[#9a401f] transition-colors duration-300 flex items-center gap-1">
+            <span class="material-symbols-outlined">account_circle</span>
+            {{ authUser?.name?.split(' ')[0] }}
+          </router-link>
+          <button @click="logout"
+            class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-300">
+            Logout
+          </button>
+        </template>
+        <template v-else>
+          <router-link to="/login"
+            class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:scale-105 transition-all duration-300">
+            Login
+          </router-link>
+        </template>
       </div>
     </nav>
     
