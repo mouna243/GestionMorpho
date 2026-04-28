@@ -33,20 +33,15 @@ const login = async () => {
       throw new Error(data.message || 'Login failed')
     }
 
-    // store token
     localStorage.setItem('token', data.token)
-
-    console.log(data.token);
     
-
-    // fetch authenticated user to get role
     const meRes = await fetch('http://localhost:8080/api/auth/me', {
       headers: { 'Authorization': `Bearer ${data.token}`, 'Accept': 'application/json' }
     })
     const meData = await meRes.json()
     const role = meData.user?.role
     
-    localStorage.setItem('user', JSON.stringify(meData.user.id))
+    localStorage.setItem('user', JSON.stringify(meData.user))
 
     if (role === 'admin') {
       router.push('/admin/dashboard')
