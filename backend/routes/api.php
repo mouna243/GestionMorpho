@@ -96,6 +96,9 @@ Route::middleware(['auth:sanctum', 'role:staff', 'departement:ChefPersonnel'])->
     /* Gestion des reservations */
     Route::apiResource('reservations', ReservationController::class);
 
+    /* Gestion des commandes */
+    Route::apiResource('commandes', CommandeController::class);
+
 /* Client Routes */
 Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
 
@@ -107,6 +110,4 @@ Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
     Route::post('bills/{commande}/store', [BillController::class, 'storeCommandeBill']);
     Route::post('bills/{spaSession}/store', [BillController::class, 'storeSpaSessionBill']);
 
-    /* Gestion des commandes */
-    Route::apiResource('commandes', CommandeController::class);
 });
