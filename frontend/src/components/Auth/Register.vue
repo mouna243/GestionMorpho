@@ -48,14 +48,11 @@ const register = async () => {
       throw new Error(data.message || "Register failed");
     }
 
-    console.log('Response status:', response.status);  
+    console.log('Response status:', response.status);
     router.push('/login');
-
+     
   } catch (e) {
     error.value = e.message;
-    console.error('Fetch error:', error.value); 
-    console.log('Validation errors:', validationErrors.value.name[0]);
-     
   } finally {
     loading.value = false;
   }
