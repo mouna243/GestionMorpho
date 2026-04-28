@@ -10,8 +10,9 @@ class Reservation extends Model
             'date_enter',
             'date_sortie',
             'prix',
-            'client_id',
-            'chamber_id'
+            'user_id',
+            'chamber_id',
+            'chamber'
      ];
 
      // relation : chamber , user , paiment
