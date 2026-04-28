@@ -1,615 +1,272 @@
-<template>
-  <div class="min-h-screen bg-gray-50 py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Header Section -->
-      <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">Nos Sessions Spa</h1>
-        <div class="w-24 h-1 bg-indigo-600 mx-auto"></div>
-        <p class="text-xl text-gray-600 mt-4">Découvrez nos traitements bien-être pour une détente absolue</p>
-      </div>
+<script setup>
+import { ref, onMounted } from 'vue';
 
-      <!-- Filters Section -->
-      <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <div class="grid md:grid-cols-4 gap-4">
-          <!-- Category Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
-            <select v-model="filters.category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-              <option value="">Toutes les catégories</option>
-              <option value="Massage">Massages</option>
-              <option value="Soin visage">Soins du visage</option>
-              <option value="Hammam">Hammam</option>
-              <option value="Rituel">Rituels</option>
-              <option value="Soin">Soins</option>
-            </select>
-          </div>
+const types = ref([]);
+const loading = ref(false);
+const showModal = ref(false);
+const selectedType = ref(null);
+const spaForm = ref({ date_debut: '', date_fin: '' });
+const spaError = ref('');
+const spaSuccess = ref('');
+const spaLoading = ref(false);
+const me = ref(JSON.parse(localStorage.getItem('user') || 'null'));
 
-          <!-- Duration Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Durée</label>
-            <select v-model="filters.duration" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-              <option value="0">Toutes durées</option>
-              <option value="30">30 minutes</option>
-              <option value="60">60 minutes</option>
-              <option value="90">90 minutes</option>
-              <option value="120">120 minutes</option>
-            </select>
-          </div>
-
-          <!-- Price Range Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Prix max</label>
-            <select v-model="filters.maxPrice" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-              <option value="0">Tous les prix</option>
-              <option value="80">Jusqu'à 80€</option>
-              <option value="120">Jusqu'à 120€</option>
-              <option value="160">Jusqu'à 160€</option>
-              <option value="200">Jusqu'à 200€</option>
-            </select>
-          </div>
-
-          <!-- Sort By -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Trier par</label>
-            <select v-model="filters.sortBy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-              <option value="price-asc">Prix croissant</option>
-              <option value="price-desc">Prix décroissant</option>
-              <option value="duration-asc">Durée croissante</option>
-              <option value="duration-desc">Durée décroissante</option>
-              <option value="name-asc">Nom A-Z</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Reset Filters Button -->
-        <div class="mt-4 text-center">
-          <button @click="resetFilters" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-            Réinitialiser les filtres
-          </button>
-        </div>
-      </div>
-
-      <!-- Results Count -->
-      <div class="mb-6 flex justify-between items-center">
-        <p class="text-gray-600">
-          <span class="font-semibold">{{ filteredSessions.length }}</span> traitements disponibles
-        </p>
-        <div class="flex space-x-2">
-          <button 
-            @click="viewMode = 'grid'" 
-            class="p-2 rounded-lg transition duration-200"
-            :class="viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'"
-          >
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-            </svg>
-          </button>
-          <button 
-            @click="viewMode = 'list'" 
-            class="p-2 rounded-lg transition duration-200"
-            :class="viewMode === 'list' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'"
-          >
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Spa Sessions Grid View -->
-      <div v-if="viewMode === 'grid'" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div v-for="session in filteredSessions" :key="session.id" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:scale-105">
-          <div class="relative">
-            <img :src="session.image" :alt="session.name" class="w-full h-56 object-cover">
-            <div class="absolute top-4 right-4">
-              <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                {{ session.category }}
-              </span>
-            </div>
-            <div class="absolute bottom-4 left-4">
-              <div class="flex items-center bg-black bg-opacity-50 rounded-full px-2 py-1">
-                <svg class="h-4 w-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
-                <span class="text-white text-sm">{{ session.rating }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ session.name }}</h3>
-            <p class="text-gray-600 mb-4 text-sm">{{ session.description }}</p>
-            
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center text-sm text-gray-500">
-                <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span>{{ session.duration }} minutes</span>
-              </div>
-              <div class="flex items-center text-sm text-gray-500">
-                <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span>{{ session.price }}€</span>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap gap-2 mb-4">
-              <span v-for="benefit in session.benefits.slice(0, 3)" :key="benefit" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                ✓ {{ benefit }}
-              </span>
-            </div>
-            
-            <button 
-              @click="viewSessionDetails(session)"
-              class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300"
-            >
-              Réserver
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Spa Sessions List View -->
-      <div v-else class="space-y-6">
-        <div v-for="session in filteredSessions" :key="session.id" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-300">
-          <div class="flex flex-col md:flex-row">
-            <img :src="session.image" :alt="session.name" class="md:w-72 h-56 object-cover">
-            <div class="flex-1 p-6">
-              <div class="flex justify-between items-start mb-2">
-                <div>
-                  <h3 class="text-xl font-bold text-gray-900">{{ session.name }}</h3>
-                  <div class="flex items-center mt-1">
-                    <div class="flex text-yellow-400">
-                      <span v-for="star in Math.floor(session.rating)" :key="star">★</span>
-                      <span v-for="star in (5 - Math.floor(session.rating))" :key="'empty-' + star" class="text-gray-300">★</span>
-                    </div>
-                    <span class="text-gray-500 text-sm ml-2">({{ session.reviews }} avis)</span>
-                  </div>
-                </div>
-                <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  {{ session.category }}
-                </span>
-              </div>
-              
-              <p class="text-gray-600 mb-3">{{ session.description }}</p>
-              
-              <div class="flex flex-wrap gap-4 mb-3 text-sm">
-                <div class="flex items-center text-gray-500">
-                  <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span>{{ session.duration }} minutes</span>
-                </div>
-                <div class="flex items-center text-gray-500">
-                  <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span>{{ session.price }}€</span>
-                </div>
-              </div>
-
-              <div class="flex flex-wrap gap-2 mb-4">
-                <span v-for="benefit in session.benefits" :key="benefit" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                  ✓ {{ benefit }}
-                </span>
-              </div>
-
-              <div class="flex justify-between items-center">
-                <div class="text-sm text-gray-500">
-                  <span>👤 {{ session.therapists }} thérapeutes disponibles</span>
-                </div>
-                <button 
-                  @click="viewSessionDetails(session)"
-                  class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition duration-300"
-                >
-                  Réserver maintenant
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- No Results -->
-      <div v-if="filteredSessions.length === 0" class="text-center py-12">
-        <svg class="h-24 w-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">Aucun traitement trouvé</h3>
-        <p class="text-gray-600">Essayez de modifier vos critères de recherche</p>
-        <button @click="resetFilters" class="mt-4 text-indigo-600 hover:text-indigo-700 font-medium">
-          Réinitialiser les filtres
-        </button>
-      </div>
-
-      <!-- Spa Facilities Section -->
-      <div class="mt-16">
-        <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Nos Équipements Spa</h2>
-        <div class="grid md:grid-cols-4 gap-6">
-          <div class="text-center">
-            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-              </svg>
-            </div>
-            <h3 class="font-semibold text-gray-900">Hammam</h3>
-            <p class="text-sm text-gray-500">Traditionnel marocain</p>
-          </div>
-          <div class="text-center">
-            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-            </div>
-            <h3 class="font-semibold text-gray-900">Sauna</h3>
-            <p class="text-sm text-gray-500">Finlandais et infrarouge</p>
-          </div>
-          <div class="text-center">
-            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M6 14h12m-6-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
-            </div>
-            <h3 class="font-semibold text-gray-900">Jacuzzi</h3>
-            <p class="text-sm text-gray-500">Hydromassage</p>
-          </div>
-          <div class="text-center">
-            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-            </div>
-            <h3 class="font-semibold text-gray-900">Salle de Relaxation</h3>
-            <p class="text-sm text-gray-500">Avec thé offert</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Session Details Modal -->
-    <div v-if="selectedSession" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" @click.self="closeModal">
-      <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="relative">
-          <img :src="selectedSession.image" :alt="selectedSession.name" class="w-full h-64 object-cover rounded-t-lg">
-          <button @click="closeModal" class="absolute top-4 right-4 bg-white rounded-full p-2 hover:bg-gray-100">
-            <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <div class="p-6">
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-900">{{ selectedSession.name }}</h2>
-              <div class="flex items-center mt-2">
-                <div class="flex text-yellow-400">
-                  <span v-for="star in Math.floor(selectedSession.rating)" :key="star">★</span>
-                  <span v-for="star in (5 - Math.floor(selectedSession.rating))" :key="'empty-' + star" class="text-gray-300">★</span>
-                </div>
-                <span class="text-gray-500 text-sm ml-2">({{ selectedSession.reviews }} avis)</span>
-              </div>
-            </div>
-            <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-              {{ selectedSession.category }}
-            </span>
-          </div>
-          
-          <p class="text-gray-600 mb-6">{{ selectedSession.fullDescription || selectedSession.description }}</p>
-          
-          <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="bg-gray-50 p-3 rounded-lg text-center">
-              <div class="text-sm text-gray-500">Durée</div>
-              <div class="font-semibold text-gray-900">{{ selectedSession.duration }} minutes</div>
-            </div>
-            <div class="bg-gray-50 p-3 rounded-lg text-center">
-              <div class="text-sm text-gray-500">Prix</div>
-              <div class="font-semibold text-indigo-600">{{ selectedSession.price }}€</div>
-            </div>
-            <div class="bg-gray-50 p-3 rounded-lg text-center">
-              <div class="text-sm text-gray-500">Thérapeutes</div>
-              <div class="font-semibold text-gray-900">{{ selectedSession.therapists }} disponibles</div>
-            </div>
-            <div class="bg-gray-50 p-3 rounded-lg text-center">
-              <div class="text-sm text-gray-500">Disponibilité</div>
-              <div class="font-semibold text-green-600">7j/7</div>
-            </div>
-          </div>
-          
-          <h3 class="font-semibold text-gray-900 mb-2">Bienfaits</h3>
-          <div class="flex flex-wrap gap-2 mb-6">
-            <span v-for="benefit in selectedSession.benefits" :key="benefit" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-              ✓ {{ benefit }}
-            </span>
-          </div>
-          
-          <h3 class="font-semibold text-gray-900 mb-2">Informations importantes</h3>
-          <ul class="list-disc list-inside space-y-1 text-sm text-gray-600 mb-6">
-            <li>Arrivez 15 minutes avant l'heure prévue</li>
-            <li>Peignoir et serviettes fournis</li>
-            <li>Casiers sécurisés disponibles</li>
-            <li>Annulation gratuite jusqu'à 24h avant</li>
-          </ul>
-          
-          <button 
-            @click="goToReservation"
-            class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition duration-300"
-          >
-            Réserver cette session
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-/* import { useRouter } from 'vue-router'
-
-const router = useRouter() */
-
-// Interfaces
-interface SpaSession {
-  id: number
-  name: string
-  category: string
-  duration: number
-  price: number
-  description: string
-  fullDescription?: string
-  image: string
-  rating: number
-  reviews: number
-  benefits: string[]
-  therapists: number
+async function fetchTypes() {
+    loading.value = true;
+    const res = await fetch('http://localhost:8080/api/typeSpaSession');
+    const json = await res.json();
+    types.value = json.data.data ?? json.data;
+    loading.value = false;
 }
 
-// Filters
-const filters = ref({
-  category: '',
-  duration: 0,
-  maxPrice: 0,
-  sortBy: 'price-asc'
-})
-
-const viewMode = ref<'grid' | 'list'>('grid')
-const selectedSession = ref<SpaSession | null>(null)
-
-// All spa sessions data
-const allSessions = ref<SpaSession[]>([
-  {
-    id: 1,
-    name: 'Massage Relaxant aux Huiles Essentielles',
-    category: 'Massage',
-    duration: 60,
-    price: 120,
-    description: 'Un massage doux qui combine des techniques suédoises et des huiles essentielles pour une relaxation profonde.',
-    fullDescription: 'Ce massage relaxant utilise des mouvements lents et fluides pour détendre les muscles et apaiser l\'esprit. Les huiles essentielles sont sélectionnées selon vos besoins : lavande pour la détente, eucalyptus pour la respiration, ou citron pour l\'énergie. Idéal pour évacuer le stress et les tensions quotidiennes.',
-    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400&fit=crop',
-    rating: 4.9,
-    reviews: 156,
-    benefits: ['Réduction du stress', 'Détente musculaire', 'Amélioration du sommeil'],
-    therapists: 5
-  },
-  {
-    id: 2,
-    name: 'Soin du Visage Anti-Âge',
-    category: 'Soin visage',
-    duration: 60,
-    price: 95,
-    description: 'Un soin complet utilisant des produits naturels pour revitaliser et rajeunir votre peau.',
-    fullDescription: 'Ce soin du visage anti-âge combine nettoyage en profondeur, exfoliation douce, massage facial liftant et masque hydratant. Utilisation de produits naturels riches en antioxydants pour lutter contre les signes de l\'âge et redonner éclat et fermeté à votre peau.',
-    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&h=400&fit=crop',
-    rating: 4.8,
-    reviews: 98,
-    benefits: ['Raffermissement', 'Hydratation intense', 'Éclat immédiat'],
-    therapists: 4
-  },
-  {
-    id: 3,
-    name: 'Soin Hammam & Gommage',
-    category: 'Hammam',
-    duration: 90,
-    price: 150,
-    description: 'Un rituel traditionnel incluant hammam, gommage au savon noir et modelage relaxant.',
-    fullDescription: 'Vivez un véritable rituel de bien-être traditionnel : vapeur envoûtante du hammam, gommage exfoliant au savon noir et au gant de crin, puis modelage relaxant à l\'huile d\'argan. Une expérience sensorielle complète pour purifier et revitaliser votre corps.',
-    image: 'https://images.unsplash.com/photo-1600606081210-5f6c49620341?w=600&h=400&fit=crop',
-    rating: 4.9,
-    reviews: 203,
-    benefits: ['Purification profonde', 'Exfoliation', 'Détente totale'],
-    therapists: 3
-  },
-  {
-    id: 4,
-    name: 'Massage Sportif',
-    category: 'Massage',
-    duration: 60,
-    price: 110,
-    description: 'Massage ciblé pour soulager les tensions musculaires et améliorer la récupération.',
-    fullDescription: 'Spécialement conçu pour les sportifs, ce massage utilise des techniques profondes pour cibler les zones de tension, améliorer la circulation sanguine et accélérer la récupération musculaire. Idéal avant ou après une compétition.',
-    image: 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=600&h=400&fit=crop',
-    rating: 4.7,
-    reviews: 87,
-    benefits: ['Récupération accélérée', 'Soulagement des courbatures', 'Meilleure performance'],
-    therapists: 4
-  },
-  {
-    id: 5,
-    name: 'Rituel Bien-être Complet',
-    category: 'Rituel',
-    duration: 120,
-    price: 180,
-    description: 'Une expérience unique combinant soin du corps, massage et moment de méditation.',
-    fullDescription: 'Notre rituel signature : un parcours bien-être complet débutant par un bain de vapeur, suivi d\'un gommage corporel, d\'un enveloppement hydratant, d\'un massage aux pierres chaudes et se terminant par une séance de méditation guidée. 2 heures de pur bonheur !',
-    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&h=400&fit=crop',
-    rating: 5.0,
-    reviews: 245,
-    benefits: ['Détox complète', 'Relaxation profonde', 'Harmonie corps-esprit'],
-    therapists: 3
-  },
-  {
-    id: 6,
-    name: 'Soin Express Détente',
-    category: 'Soin',
-    duration: 30,
-    price: 70,
-    description: 'Une pause bien-être rapide pour se ressourcer pendant la journée.',
-    fullDescription: 'Parfait pour une pause déjeuner ou une courte escapade, ce soin express combine un massage rapide du dos, des épaules et de la nuque avec une courte séance de relaxation. Idéal pour décompresser en milieu de journée.',
-    image: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=600&h=400&fit=crop',
-    rating: 4.6,
-    reviews: 67,
-    benefits: ['Rapide et efficace', 'Anti-stress', 'Recharge d\'énergie'],
-    therapists: 5
-  },
-  {
-    id: 7,
-    name: 'Massage aux Pierres Chaudes',
-    category: 'Massage',
-    duration: 80,
-    price: 140,
-    description: 'Massage thérapeutique utilisant des pierres volcaniques chauffées pour une relaxation en profondeur.',
-    fullDescription: 'Les pierres chaudes placées sur les points d\'énergie du corps permettent une relaxation musculaire intense. La chaleur des pierres pénètre en profondeur, dénouant les tensions et apaisant l\'esprit. Une expérience unique et enveloppante.',
-    image: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=600&h=400&fit=crop',
-    rating: 4.9,
-    reviews: 134,
-    benefits: ['Relaxation intense', 'Dénouement des tensions', 'Bien-être profond'],
-    therapists: 4
-  },
-  {
-    id: 8,
-    name: 'Soin Découverte en Duo',
-    category: 'Rituel',
-    duration: 90,
-    price: 260,
-    description: 'Un moment privilégié à partager en couple ou entre amis.',
-    fullDescription: 'Profitez d\'un moment unique à deux avec notre soin duo : deux praticiennes pour vous offrir simultanément un massage relaxant, suivis d\'un bain moussant et d\'une coupe de champagne. Le cadeau idéal pour une occasion spéciale.',
-    image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600&h=400&fit=crop',
-    rating: 5.0,
-    reviews: 189,
-    benefits: ['Moment de partage', 'Détente à deux', 'Expérience unique'],
-    therapists: 2
-  }
-])
-
-// Computed: Filtered and sorted sessions
-const filteredSessions = computed(() => {
-  let sessions = [...allSessions.value]
-  
-  // Filter by category
-  if (filters.value.category) {
-    sessions = sessions.filter(session => session.category === filters.value.category)
-  }
-  
-  // Filter by duration
-  if (filters.value.duration > 0) {
-    sessions = sessions.filter(session => session.duration === filters.value.duration)
-  }
-  
-  // Filter by max price
-  if (filters.value.maxPrice > 0) {
-    sessions = sessions.filter(session => session.price <= filters.value.maxPrice)
-  }
-  
-  // Sort sessions
-  switch (filters.value.sortBy) {
-    case 'price-asc':
-      sessions.sort((a, b) => a.price - b.price)
-      break
-    case 'price-desc':
-      sessions.sort((a, b) => b.price - a.price)
-      break
-    case 'duration-asc':
-      sessions.sort((a, b) => a.duration - b.duration)
-      break
-    case 'duration-desc':
-      sessions.sort((a, b) => b.duration - a.duration)
-      break
-    case 'name-asc':
-      sessions.sort((a, b) => a.name.localeCompare(b.name))
-      break
-  }
-  
-  return sessions
-})
-
-// Reset filters
-const resetFilters = () => {
-  filters.value = {
-    category: '',
-    duration: 0,
-    maxPrice: 0,
-    sortBy: 'price-asc'
-  }
+function openBook(type) {
+    selectedType.value = type;
+    spaForm.value = { date_debut: '', date_fin: '' };
+    spaError.value = '';
+    spaSuccess.value = '';
+    showModal.value = true;
 }
 
-// View session details
-const viewSessionDetails = (session: SpaSession) => {
-  selectedSession.value = session
+async function submitSpa(e) {
+    e.preventDefault();
+    spaError.value = '';
+    spaSuccess.value = '';
+    if (!me.value?.id) { spaError.value = 'Vous devez être connecté.'; return; }
+    spaLoading.value = true;
+    const res = await fetch('http://localhost:8080/api/spaSessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+            type_spa_session_id: selectedType.value.id,
+            client_id: me.value.id,
+            date_debut: spaForm.value.date_debut,
+            date_fin: spaForm.value.date_fin
+        })
+    });
+    const json = await res.json();
+    spaLoading.value = false;
+    if (!res.ok) { spaError.value = json.message ?? 'Erreur'; return; }
+    spaSuccess.value = 'Session réservée avec succès !';
+    setTimeout(() => { showModal.value = false; }, 1500);
 }
 
-// Close modal
-const closeModal = () => {
-  selectedSession.value = null
-}
-
-// Go to reservation
-const goToReservation = () => {
-  if (selectedSession.value) {
-    localStorage.setItem('selectedSpaTreatment', JSON.stringify(selectedSession.value))
-    /* router.push('/spa-reservation') */
-  }
-}
+onMounted(fetchTypes);
 </script>
 
-<style scoped>
-/* Custom animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+<template>
 
-.bg-white {
-  animation: fadeIn 0.5s ease-out;
-}
+<div class="bg-surface text-on-surface font-body selection:bg-primary-fixed-dim selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-[#fcf9ef]/80 dark:bg-stone-950/80 backdrop-blur-md shadow-[0_20px_40px_rgba(28,28,22,0.06)]">
+<div class="flex justify-between items-center w-full px-12 py-6 max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-['Noto_Serif'] italic text-[#9a401f] dark:text-[#C05C39]">Kasbah Royale</span>
+</div>
+<div class="hidden md:flex items-center space-x-10">
+<a class="text-stone-600 dark:text-stone-400 font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#755717] transition-all duration-300 ease-in-out" href="#">Suites</a>
+<a class="text-stone-600 dark:text-stone-400 font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#755717] transition-all duration-300 ease-in-out" href="#">Dining</a>
+<a class="text-stone-600 dark:text-stone-400 font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#755717] transition-all duration-300 ease-in-out" href="#">Experiences</a>
+<a class="text-[#9a401f] dark:text-[#C05C39] border-b-2 border-[#755717] pb-1 font-['Manrope'] uppercase tracking-widest text-[10px]" href="#">Wellness</a>
+<a class="text-stone-600 dark:text-stone-400 font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#755717] transition-all duration-300 ease-in-out" href="#">Heritage</a>
+</div>
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-label text-xs uppercase tracking-[0.15em] hover:scale-105 transition-all duration-300 ease-in-out shadow-lg">
+                Reserve Now
+            </button>
+</div>
+</nav>
+<main class="pt-24 zellige-pattern">
+<!-- Hero Section -->
+<section class="relative h-[921px] flex flex-col items-center justify-center px-12 overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover brightness-75 scale-110" data-alt="Luxurious traditional Moroccan hammam with marble steam room, warm sunlight filtering through geometric vents, and soft incense smoke" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC23I96eMhhCWge5piQNYoF1NTTxX8q94nz9lvP8QUkAoxtREUFL1bZAQ5zjdcqXzlElBoIuhh0n3YwICqmedr-PDHM77_OYNdNKiA5r1pk_H90to0-paXaxJu3YNQZ1c-Wu-KMenkk9GdEi09nonrGuj-gMjv5ZEW5HybrTsUfUuJ6yzKIF0gsC6-SwoKCRmaF5AUsxPFPtEDahk_95xpofuxgtETPeuK6au9jUvJ1Dj8YdvNMGrEhCoCqA1eL6j29KuVOj3RqcyLp"/>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-surface"></div>
+</div>
+<div class="relative z-10 text-center max-w-4xl">
+<span class="inline-block font-label text-white/90 uppercase tracking-[0.3em] text-[10px] mb-6">Sanctuary of the Soul</span>
+<h1 class="text-display-lg text-7xl md:text-8xl font-headline font-light text-white leading-tight mb-8">The Royal <br/><span class="italic text-tertiary-fixed-dim">Wellness Sanctuary</span></h1>
+<p class="text-white/80 font-body text-lg leading-relaxed max-w-2xl mx-auto mb-10">
+                    A celestial journey through ancient Moorish rituals. From the cleansing heat of the hammam to the infusion of rare Atlas botanicals.
+                </p>
+<div class="flex justify-center gap-6">
+<button class="bg-primary text-on-primary px-10 py-4 rounded-full font-label text-xs uppercase tracking-widest hover:bg-primary-container transition-all">
+                        Explore Treatments
+                    </button>
+<button class="border border-white/30 backdrop-blur-md text-white px-10 py-4 rounded-full font-label text-xs uppercase tracking-widest hover:bg-white/10 transition-all">
+                        View Menu
+                    </button>
+</div>
+</div>
+<!-- Architectural Accent -->
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-surface hero-arch"></div>
+</section>
+<!-- Intro Content -->
+<section class="py-24 px-12 max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-16 items-center">
+<div class="md:col-span-5">
+<div class="relative">
+<img class="w-full aspect-[4/5] object-cover arch-mask shadow-2xl" data-alt="Close up of essential oils and Moroccan argan oil in amber glass bottles on a terracotta tile surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAx7UHXz_aFPHSnM5hX9laIJGmZgZ1COvMq4OV08Yxjn7FCgf0w5Z9bXQxn_pa0Yj5ln_swqqqo0DJGBLKLVtxWKzl_J1sWuo2-D_ZrFyeWZ2D_9638ZbidPyMd9kQ73LO6MNf2YORZRHtgJ3ZYDJ5MscqRQ7ulq_8BaOOoMS7tnSUwAXSfO0ST5Mz41uTvpdj28Bo3bYanOR__gxBDpeaaNl1WYfipwanxbvluWtmwJL6NZ1HF550HrcrYw77P3mwjj_6X5TGJBVV0"/>
+<div class="absolute -bottom-8 -right-8 w-48 h-48 bg-tertiary-container/10 backdrop-blur-xl rounded-full flex items-center justify-center p-8 border border-tertiary/20">
+<p class="text-[10px] font-label text-tertiary text-center uppercase tracking-widest">Est. 1924 <br/> Legacy of Purity</p>
+</div>
+</div>
+</div>
+<div class="md:col-span-7">
+<h2 class="font-headline text-5xl text-primary mb-8 leading-tight">The Art of <span class="italic">The Slow Reveal</span></h2>
+<p class="font-body text-on-surface-variant text-lg leading-relaxed mb-8">
+                    In the heart of Kasbah Royale, time operates differently. Our wellness philosophy is rooted in the "Slow Reveal"—a process of peeling back the layers of daily life to uncover a state of profound tranquility. We pair centuries-old Moroccan traditions with modern therapeutic precision.
+                </p>
+<div class="grid grid-cols-2 gap-8">
+<div>
+<span class="block text-3xl font-headline text-tertiary mb-2">12</span>
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Private Treatment Alcovs</span>
+</div>
+<div>
+<span class="block text-3xl font-headline text-tertiary mb-2">100%</span>
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Organic Atlas Botanicals</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Treatments Grid -->
+<section class="bg-surface-container-low py-32 px-12">
+<div class="max-w-screen-2xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+<div class="max-w-2xl">
+<span class="font-label text-primary uppercase tracking-[0.4em] text-[10px] mb-4 block">Signature Rituals</span>
+<h2 class="font-headline text-5xl text-on-surface">Curated Restorative Journeys</h2>
+</div>
+<button class="text-tertiary font-label text-xs uppercase tracking-widest border-b-2 border-tertiary pb-1 hover:text-primary hover:border-primary transition-all duration-300">
+                        Download Spa Menu
+                    </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<div v-if="loading" class="md:col-span-3 text-center py-12 text-on-surface-variant">Chargement...</div>
+<div v-else-if="types.length === 0" class="md:col-span-3 text-center py-12 text-on-surface-variant">Aucun service disponible</div>
+<div v-for="type in types" :key="type.id" class="group">
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="font-headline text-2xl text-on-surface group-hover:text-primary transition-colors">{{ type.name }}</h3>
+<span class="text-tertiary font-headline italic">{{ type.prix }} DH</span>
+</div>
+<div class="flex items-center gap-4">
+<span :class="type.status ? 'text-green-600' : 'text-red-500'" class="text-[10px] font-label uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">{{ type.status ? 'check_circle' : 'cancel' }}</span>
+{{ type.status ? 'Disponible' : 'Indisponible' }}
+</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed">{{ type.description }}</p>
+<button @click="openBook(type)" :disabled="!type.status"
+  class="w-full py-4 border border-outline-variant rounded-full font-label text-[10px] uppercase tracking-widest hover:bg-secondary hover:text-on-secondary transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed">
+  Book Session
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Amenity Bento Grid -->
+<section class="py-32 px-12 max-w-screen-2xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-8 h-auto md:h-[800px]">
+<div class="md:col-span-2 md:row-span-2 bg-surface-container-high relative overflow-hidden group">
+<img class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" data-alt="Indoor infinity pool with Moroccan tile arches reflecting in the turquoise water" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsoLbNzDFixZiDvm8O4GbhnKmRaPbL3pLnLyUuvX37C_c08bt4Ves3epXFybHA1K2mMhsRmoqKTptHRTunNY_9AJ8sMrmqn_NGAG78bJceGZ1_eVo-fd2ZywS5u__9wGcuH8TtsCOAzmYb3k07jQ5h9A9BP0SmEBXk56XYRvkV8LYGF2DfifCi7tkX70ItE3sP8SS_2VuFBWZRpga1IeQeKpbil_uo6-lcSDSf2DnbYY9HObhKT5awkFvj0imYuSsv822-8YFhaH3i"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/60 to-transparent"></div>
+<div class="absolute bottom-10 left-10">
+<h4 class="font-headline text-3xl text-white mb-2">The Emerald Pool</h4>
+<p class="text-white/80 font-body text-sm uppercase tracking-widest">Indoor Vitality Oasis</p>
+</div>
+</div>
+<div class="md:col-span-2 bg-secondary text-on-secondary p-12 flex flex-col justify-center relative overflow-hidden">
+<div class="z-10">
+<span class="material-symbols-outlined text-4xl mb-6 text-secondary-fixed">self_improvement</span>
+<h4 class="font-headline text-3xl mb-4">Rooftop Yoga Pavilion</h4>
+<p class="font-body text-on-secondary/80 leading-relaxed mb-6">Greeting the dawn with guided Vinyasa overlooking the Medina and the distant peaks of the High Atlas.</p>
+<a class="inline-block text-[10px] font-label uppercase tracking-widest border-b border-on-secondary/40 pb-1" href="#">View Schedule</a>
+</div>
+<div class="absolute -right-10 -bottom-10 opacity-10">
+<span class="material-symbols-outlined text-[200px]">filter_vintage</span>
+</div>
+</div>
+<div class="md:col-span-1 bg-surface-container p-8 flex flex-col justify-end border border-outline-variant/10">
+<h4 class="font-headline text-xl text-primary mb-2">Steam &amp; Mist</h4>
+<p class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Herbal Infusion Sauna</p>
+</div>
+<div class="md:col-span-1 bg-tertiary-container text-on-tertiary-container p-8 flex flex-col justify-end">
+<h4 class="font-headline text-xl mb-2">The Zest Bar</h4>
+<p class="text-[10px] font-label text-on-tertiary-container/80 uppercase tracking-widest">Fresh Cold-Pressed Elixirs</p>
+</div>
+</div>
+</section>
+<!-- Newsletter / Booking Teaser -->
+<section class="py-32 bg-surface">
+<div class="max-w-4xl mx-auto text-center px-6">
+<span class="material-symbols-outlined text-primary text-5xl mb-8">mail</span>
+<h2 class="font-headline text-4xl mb-6 text-on-surface">Join the Royal Circle</h2>
+<p class="font-body text-on-surface-variant text-lg mb-12">Receive exclusive wellness insights and seasonal ritual offers from our sanctuary.</p>
+<div class="flex flex-col md:flex-row gap-4">
+<input class="flex-grow bg-surface-container-low border-none border-b-2 border-outline-variant focus:ring-0 focus:border-primary px-6 py-4 font-body text-sm rounded-none" placeholder="Your Email Address" type="email"/>
+<button class="bg-primary text-on-primary px-12 py-4 rounded-full font-label text-[10px] uppercase tracking-widest hover:bg-primary-container transition-all">Subscribe</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#fcf9ef] dark:bg-stone-950 border-t border-[#755717]/10">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 py-16 w-full max-w-screen-2xl mx-auto">
+<div class="mb-8 md:mb-0">
+<span class="font-['Noto_Serif'] text-lg text-[#755717]">Kasbah Royale</span>
+<p class="text-stone-500 font-['Manrope'] text-xs tracking-[0.1em] uppercase mt-2">© 2024 Kasbah Royale. A Legacy of Moroccan Splendor.</p>
+</div>
+<div class="flex gap-12">
+<a class="text-stone-500 font-['Manrope'] text-xs tracking-[0.1em] uppercase hover:text-[#755717] underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100" href="#">Heritage</a>
+<a class="text-stone-500 font-['Manrope'] text-xs tracking-[0.1em] uppercase hover:text-[#755717] underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100" href="#">Contact Us</a>
+<a class="text-stone-500 font-['Manrope'] text-xs tracking-[0.1em] uppercase hover:text-[#755717] underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100" href="#">Press</a>
+<a class="text-stone-500 font-['Manrope'] text-xs tracking-[0.1em] uppercase hover:text-[#755717] underline underline-offset-4 transition-opacity opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+</div>
+</div>
+</footer>
 
-/* Smooth transitions */
-input, select, button {
-  transition: all 0.3s ease;
-}
-
-input:focus, select:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-button:active {
-  transform: scale(0.98);
-}
-
-/* Modal scrollbar */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 8px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-</style>
+<!-- Modal Réservation SPA -->
+<div v-if="showModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+  <div class="bg-[#fcf9ef] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="px-8 py-6 border-b border-[#9a401f]/10 flex items-center justify-between">
+      <div>
+        <h3 class="font-headline text-2xl text-[#9a401f]">Réserver une Session</h3>
+        <p class="text-sm text-[#755717]/70 mt-0.5 font-light">{{ selectedType?.name }} — {{ selectedType?.prix }} DH</p>
+      </div>
+      <button @click="showModal = false" class="p-2 text-[#9a401f]/50 hover:text-[#9a401f] hover:bg-[#9a401f]/10 rounded-full transition-all">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form @submit="submitSpa" class="px-8 py-6 space-y-5">
+      <div v-if="spaSuccess" class="p-3 bg-green-50 text-green-700 rounded-xl text-sm font-semibold flex items-center gap-2">
+        <span class="material-symbols-outlined text-base">check_circle</span>{{ spaSuccess }}
+      </div>
+      <div v-if="spaError" class="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-semibold flex items-center gap-2">
+        <span class="material-symbols-outlined text-base">error</span>{{ spaError }}
+      </div>
+      <div class="space-y-1.5">
+        <label class="font-label text-[10px] uppercase tracking-widest text-[#755717]">Date de début</label>
+        <input v-model="spaForm.date_debut" type="date" required
+          class="w-full bg-transparent border-0 border-b border-[#9a401f]/20 py-3 px-0 text-[#9a401f] focus:ring-0 focus:border-[#9a401f] transition-all" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="font-label text-[10px] uppercase tracking-widest text-[#755717]">Date de fin</label>
+        <input v-model="spaForm.date_fin" type="date" required
+          class="w-full bg-transparent border-0 border-b border-[#9a401f]/20 py-3 px-0 text-[#9a401f] focus:ring-0 focus:border-[#9a401f] transition-all" />
+      </div>
+      <div class="pt-2 p-4 bg-[#9a401f]/5 rounded-2xl flex justify-between items-center">
+        <span class="font-label text-[10px] uppercase tracking-widest text-[#755717]">Prix</span>
+        <span class="font-headline text-xl text-[#9a401f]">{{ selectedType?.prix }} DH</span>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" @click="showModal = false"
+          class="flex-1 py-3 rounded-full border border-[#9a401f]/20 font-label text-[10px] uppercase tracking-widest text-[#9a401f] hover:bg-[#9a401f]/5 transition-all">Annuler</button>
+        <button type="submit" :disabled="spaLoading"
+          class="flex-1 py-3 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-label text-[10px] uppercase tracking-widest hover:scale-[1.02] transition-all">
+          {{ spaLoading ? 'En cours...' : 'Confirmer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+</template>
