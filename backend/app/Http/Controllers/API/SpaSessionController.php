@@ -31,6 +31,7 @@ class SpaSessionController extends Controller
     {
         $request->validate([
             'type_spa_session_id' => 'required|integer',
+            'client_id' => 'required|integer',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date',
         ]);
@@ -39,10 +40,10 @@ class SpaSessionController extends Controller
 
         $spaSession = SpaSession::create([
             'type_spa_session_id' => $request->type_spa_session_id,
-            'client_id'=> auth()->user()->id,
+            'client_id' => $request->client_id,
             'date_debut' => $request->date_debut,
             'date_fin' => $request->date_fin,
-            'prix'=> $type->prix ,
+            'prix' => $type->prix,
         ]);
 
         if ($spaSession) {
