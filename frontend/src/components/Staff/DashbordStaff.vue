@@ -66,7 +66,7 @@ onMounted(async () => {
     <aside class="fixed left-0 top-0 h-full w-[260px] bg-[#a23759] shadow-2xl flex flex-col h-full py-6 z-50">
       <div class="px-8 mb-10">
         <h1 class="text-2xl font-black text-white font-headline-xl">Morpho Gestion</h1>
-        <p class="text-[#fdf2f5] text-label-md">RH Dashboard</p>
+        <p class="text-[#fdf2f5] text-label-md">Staff Dashboard</p>
       </div>
       <nav class="flex-1 space-y-2">
         <!-- Active State: Tableau de bord -->

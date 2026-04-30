@@ -137,7 +137,7 @@ onMounted(async () => {
     <aside class="fixed left-0 top-0 h-full w-[260px] bg-[#467434] shadow-2xl flex flex-col h-full py-6 z-50">
       <div class="px-8 mb-10">
         <h1 class="text-2xl font-black text-white font-headline-xl">Morpho Gestion</h1>
-        <p class="text-[#f9f9f1]/80 text-label-md">RH Dashboard</p>
+        <p class="text-[#f9f9f1]/80 text-label-md">Chef Dashboard</p>
       </div>
       <nav class="flex-1 space-y-2">
         <router-link to="/ChefPersonnel/dashbord">
