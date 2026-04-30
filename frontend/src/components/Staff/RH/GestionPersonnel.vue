@@ -1,5 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useAuth } from '../../../composables/useAuth';
+
+const { logout } = useAuth();
+
+const token = localStorage.getItem('token');
 
 const departements = ref([]);
 const showModal = ref(false);
@@ -12,13 +17,17 @@ const successMsg = ref('');
 const form = ref({ name: '', email: '', password: '', password_confirmation: '', telephon: '', CIN: '', age: '', salaire: '', departement_id: '', experiences: [], langages: [] });
 
 async function fetchDepartements() {
-    const res = await fetch('http://localhost:8080/api/departements');
+    const res = await fetch('http://localhost:8080/api/staff/rh/departements', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     const depts = json.data.data ?? json.data;
     // fetch staffs for each dept
     departements.value = await Promise.all(
         depts.map(async d => {
-            const r = await fetch(`http://localhost:8080/api/departements/${d.id}`);
+            const r = await fetch(`http://localhost:8080/api/staff/rh/departements/${d.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const j = await r.json();
             return j.data;
         })
@@ -50,11 +59,15 @@ async function submitForm(e) {
     errors.value = {};
     const isEdit = modalMode.value === 'edit';
     const url = isEdit
-        ? `http://localhost:8080/api/admin/staff/${editStaffId.value}/edit`
-        : 'http://localhost:8080/api/admin/staff/add';
+        ? `http://localhost:8080/api/staff/rh/staff/${editStaffId.value}/edit`
+        : 'http://localhost:8080/api/staff/rh/staff/add';
     const res = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json', 
+          'Accept': 'application/json' 
+        },
         body: JSON.stringify(form.value)
     });
     const json = await res.json();
@@ -66,7 +79,10 @@ async function submitForm(e) {
 
 async function deleteStaff(staffId) {
     if (!confirm('Supprimer ce membre du personnel ?')) return;
-    const res = await fetch(`http://localhost:8080/api/admin/staff/${staffId}/delete`, { method: 'DELETE' });
+    const res = await fetch(`http://localhost:8080/api/staff/rh/staff/${staffId}/delete`, { 
+      headers: { 'Authorization': `Bearer ${token}` },
+      method: 'DELETE' 
+    });
     if (res.ok || res.status === 204) await fetchDepartements();
 }
 
@@ -108,7 +124,7 @@ onMounted(fetchDepartements);
           <span class="text-white material-symbols-outlined" data-icon="logout">logout</span>
           <div class="overflow-hidden">
          <!--   logout  -->
-            <a href="/login" class="text-white font-bold text-label-md leading-none block">Déconnexion</a>
+            <button @click="logout" class="text-white font-bold text-label-md leading-none block cursor-pointer">Déconnexion</button>
           </div>
         </div>
       </div>

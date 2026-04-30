@@ -1,8 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useAuth } from '../../composables/useAuth';
 
-const API = 'http://localhost:8080/api/workshifts';
-const API_DEPT = 'http://localhost:8080/api/departements';
+const { logout } = useAuth();
+
+const API = 'http://localhost:8080/api/admin/workshifts';
+const API_DEPT = 'http://localhost:8080/api/admin/departements';
+const token = localStorage.getItem('token');
 
 const workshifts = ref([]);
 const departements = ref([]);
@@ -28,8 +32,8 @@ function formatDate(d) {
 
 async function fetchAll() {
     const [ws, dp] = await Promise.all([
-        fetch(API).then(r => r.json()),
-        fetch(API_DEPT).then(r => r.json())
+        fetch(API, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+        fetch(API_DEPT, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
     ]);
     workshifts.value = ws.data.data ?? ws.data;
     departements.value = dp.data.data ?? dp.data;
@@ -41,7 +45,11 @@ async function addWorkshift(e) {
     successMsg.value = '';
     const res = await fetch(API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(form.value)
     });
     const json = await res.json();
@@ -70,7 +78,11 @@ async function updateWorkshift(e) {
     editErrors.value = {};
     const res = await fetch(`${API}/${editId.value}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(editForm.value)
     });
     const json = await res.json();
@@ -82,7 +94,10 @@ async function updateWorkshift(e) {
 
 async function deleteWorkshift(id) {
     if (!confirm('Supprimer ce workshift ?')) return;
-    await fetch(`${API}/${id}`, { method: 'DELETE' });
+    await fetch(`${API}/${id}`, { 
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     workshifts.value = workshifts.value.filter(w => w.id !== id);
 }
 
@@ -134,11 +149,11 @@ onMounted(fetchAll);
             <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
 
                 <div class="space-y-1">
-                    <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                        href="#">
+                    <button class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold cursor-pointer"
+                        @click="logout">
                         <span class="material-symbols-outlined" data-icon="logout">logout</span>
                         <span>Déconnexion</span>
-                    </a>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -234,7 +249,7 @@ onMounted(fetchAll);
                                 <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">
                                     Check-in (heure d'arrivée) <span class="text-red-500">*</span>
                                 </label>
-                                <input v-model="form.check_in" type="date" required
+                                <input v-model="form.check_in" type="time" required
                                     class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all" />
                                 <p class="text-xs text-slate-400 mt-1">Heure de début de poste</p>
                                 <p v-if="errors.check_in" class="text-red-500 text-xs">{{ errors.check_in[0] }}</p>
@@ -245,7 +260,7 @@ onMounted(fetchAll);
                                 <label class="font-semibold text-xs text-slate-700 flex items-center gap-1">
                                     Check-out (heure de sortie) <span class="text-red-500">*</span>
                                 </label>
-                                <input v-model="form.check_out" type="date" required
+                                <input v-model="form.check_out" type="time" required
                                     class="w-full border-slate-200 rounded-lg py-3 px-4 focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] transition-all" />
                                 <p class="text-xs text-slate-400 mt-1">Heure de fin de poste</p>
                                 <p v-if="errors.check_out" class="text-red-500 text-xs">{{ errors.check_out[0] }}</p>

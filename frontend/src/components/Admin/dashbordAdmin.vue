@@ -1,24 +1,36 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useAuth } from '../../composables/useAuth';
+
+const { logout } = useAuth();
+const token = localStorage.getItem('token');
 
 const stats = ref({});
 const absences = ref([]);
 const tasks = ref([]);
 
 async function fetchStats() {
-  const res = await fetch('http://localhost:8080/api/admin/stats');
+  const res = await fetch('http://localhost:8080/api/admin/stats', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
   const json = await res.json();
   stats.value = json.data;
 }
 
 async function fetchAbsences() {
-  const res = await fetch('http://localhost:8080/api/admin/absences');
+  const res = await fetch('http://localhost:8080/api/admin/absences',
+    {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }
+  );
   const json = await res.json();
   absences.value = json.data;
 }
 
 async function fetchTasks() {
-  const res = await fetch('http://localhost:8080/api/tasks');
+  const res = await fetch('http://localhost:8080/api/admin/tasks', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
   const json = await res.json();
   tasks.value = json.data.data ?? json.data;
 }
@@ -75,11 +87,11 @@ onMounted(() => {
       <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
 
         <div class="space-y-1">
-          <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-            href="#">
+          <button class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold cursor-pointer"
+            @click="logout">
             <span class="material-symbols-outlined" data-icon="logout">logout</span>
             <span>Déconnexion</span>
-          </a>
+          </button>
         </div>
       </div>
     </aside>

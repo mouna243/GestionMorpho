@@ -4,6 +4,8 @@ import { useAuth } from '../../../composables/useAuth.js';
 
 const { isLoggedIn, user: authUser, logout } = useAuth();
 
+const token = localStorage.getItem('token');
+
 const plats = ref([]);
 const cart = ref([]); // [{ plat, quantite }]
 const note = ref('');
@@ -19,7 +21,9 @@ const cartCount = computed(() => cart.value.reduce((s, i) => s + i.quantite, 0))
 // --- fetch plats ---
 async function fetchPlats() {
     loading.value = true;
-    const res = await fetch('http://localhost:8080/api/plats');
+    const res = await fetch('http://localhost:8080/api/client/plats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     plats.value = json.data.data ?? json.data;
     loading.value = false;
@@ -48,9 +52,13 @@ async function submitOrder() {
     orderError.value = '';
     orderLoading.value = true;
 
-    const res = await fetch('http://localhost:8080/api/commandes', {
+    const res = await fetch('http://localhost:8080/api/client/commandes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json' 
+        },
         body: JSON.stringify({
             client_id: authUser.value.id,
             plats: cart.value.map(i => ({ plat_id: i.plat.id, quantite: i.quantite }))

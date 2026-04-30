@@ -1,8 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useAuth } from '../../composables/useAuth';
 
-const API_TYPES = 'http://localhost:8080/api/typeSpaSession';
-const API_SESSIONS = 'http://localhost:8080/api/spaSessions';
+const { logout } = useAuth();
+
+const API_TYPES = 'http://localhost:8080/api/admin/typeSpaSession';
+const API_SESSIONS = 'http://localhost:8080/api/admin/spaSessions';
+const token = localStorage.getItem('token');
 
 // data
 const types = ref([]);
@@ -29,8 +33,16 @@ const sessionErrors = ref({});
 async function fetchAll() {
     loading.value = true;
     const [tRes, sRes] = await Promise.all([
-        fetch(API_TYPES),
-        fetch(API_SESSIONS)
+        fetch(API_TYPES, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        }),
+        fetch(API_SESSIONS, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
     ]);
     const tJson = await tRes.json();
     const sJson = await sRes.json();
@@ -63,7 +75,11 @@ async function submitType(e) {
     const url = isEdit ? `${API_TYPES}/${editTypeId.value}` : API_TYPES;
     const res = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ ...typeForm.value, is_available: typeForm.value.is_available ? 1 : 0 })
     });
     const json = await res.json();
@@ -74,7 +90,13 @@ async function submitType(e) {
 
 async function deleteType(id) {
     if (!confirm('Supprimer ce type de service SPA ?')) return;
-    await fetch(`${API_TYPES}/${id}`, { method: 'DELETE' });
+    await fetch(`${API_TYPES}/${id}`, { 
+        method: 'DELETE',
+        headers: { 
+            'Authorization': `Bearer ${token}`, 
+            'Accept': 'application/json' 
+        }
+     });
     await fetchAll();
 }
 
@@ -82,7 +104,11 @@ async function deleteType(id) {
 async function validateSession(session) {
     const res = await fetch(`${API_SESSIONS}/${session.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json' 
+        },
         body: JSON.stringify({
             type_spa_session_id: session.type_spa_session_id,
             date_debut: session.date_debut,
@@ -95,7 +121,13 @@ async function validateSession(session) {
 
 async function deleteSession(id) {
     if (!confirm('Supprimer cette session SPA ?')) return;
-    await fetch(`${API_SESSIONS}/${id}`, { method: 'DELETE' });
+    await fetch(`${API_SESSIONS}/${id}`, { 
+        method: 'DELETE',
+        headers: { 
+            'Authorization': `Bearer ${token}`, 
+            'Accept': 'application/json' 
+        }
+    });
     await fetchAll();
 }
 
@@ -142,10 +174,11 @@ onMounted(fetchAll);
                 </a>
             </nav>
             <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
-                <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold">
-                    <span class="material-symbols-outlined">logout</span>
+                <button class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold cursor-pointer"
+                    @click="logout">
+                    <span class="material-symbols-outlined" data-icon="logout">logout</span>
                     <span>Déconnexion</span>
-                </a>
+                </button>
             </div>
         </aside>
 

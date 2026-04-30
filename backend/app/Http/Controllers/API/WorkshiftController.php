@@ -32,8 +32,8 @@ class WorkshiftController extends Controller
             'departement_id'=>'required|integer',
             'date_debut'=>'required|date',
             'date_fin' => 'required|date',
-            'check_in' => 'required|date',
-            'check_out' => 'required|date',
+            'check_in' => 'required|string',
+            'check_out' => 'required|string',
         ]);
 
         $workshift = Workshift::create([
@@ -87,8 +87,8 @@ class WorkshiftController extends Controller
             'departement_id'=>'required|integer',
             'date_debut'=>'required|date',
             'date_fin' => 'required|date',
-            'check_in' => 'required|date',
-            'check_out' => 'required|date',
+            'check_in' => 'required|string',
+            'check_out' => 'required|string',
         ]);
 
         $is_updated = $workshift->update([

@@ -4,6 +4,8 @@ import { useAuth } from '../../../composables/useAuth.js';
 
 const { isLoggedIn, user: authUser, logout } = useAuth();
 
+const token = localStorage.getItem('token');
+
 const types = ref([]);
 const loading = ref(false);
 const showModal = ref(false);
@@ -16,7 +18,7 @@ const me = ref(JSON.parse(localStorage.getItem('user') || 'null'));
 
 async function fetchTypes() {
   loading.value = true;
-  const res = await fetch('http://localhost:8080/api/typeSpaSession');
+  const res = await fetch('http://localhost:8080/api/client/typeSpaSession');
   const json = await res.json();
   types.value = json.data.data ?? json.data;
   loading.value = false;
@@ -36,9 +38,13 @@ async function submitSpa(e) {
   spaSuccess.value = '';
   if (!me.value?.id) { spaError.value = 'Vous devez être connecté.'; return; }
   spaLoading.value = true;
-  const res = await fetch('http://localhost:8080/api/spaSessions', {
+  const res = await fetch('http://localhost:8080/api/client/spaSessions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json', 
+      'Accept': 'application/json' 
+    },
     body: JSON.stringify({
       type_spa_session_id: selectedType.value.id,
       client_id: me.value.id,

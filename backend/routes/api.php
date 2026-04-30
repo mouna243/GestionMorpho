@@ -31,21 +31,21 @@ Route::prefix('auth')->group(function () {
 
 
 /* Admin Routes */
-/* Route::middleware(['auth:sanctum', 'role:admin'])->group(function () { */
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
-    /* Gestion des staff */
-    Route::prefix('admin')->group(function () {
-        Route::get('/', [AdminController::class, 'index']);
-        Route::get('/stats', [AdminController::class, 'stats']);
-        Route::get('/absences', [AdminController::class, 'absences']);
-        Route::prefix('staff')->group(function () {
-            Route::get('/all', [StaffController::class, 'index']);
-            Route::get('/{id}', [StaffController::class, 'Show']);
-            Route::post('/add', [AdminController::class, 'storeRH']);
-            Route::put('/{id}/edit', [AdminController::class, 'updateRH']);
-            Route::delete('/{id}/delete', [AdminController::class, 'destroy']);
-        });
+    Route::get('/', [AdminController::class, 'index']);
+    Route::get('/stats', [AdminController::class, 'stats']);
+    Route::get('/absences', [AdminController::class, 'absences']);
+    Route::prefix('staff')->group(function () {
+        Route::get('/all', [StaffController::class, 'index']);
+        Route::get('/{id}', [StaffController::class, 'Show']);
+        Route::post('/add', [AdminController::class, 'storeRH']);
+        Route::put('/{id}/edit', [AdminController::class, 'updateRH']);
+        Route::delete('/{id}/delete', [AdminController::class, 'destroy']);
     });
+
+    /* Gestion des tasks */
+    Route::get('/tasks', [TaskController::class, 'index']);
 
     /* Gestion des departements */
     Route::apiResource('departements', DepartementController::class);
@@ -65,30 +65,75 @@ Route::prefix('auth')->group(function () {
     //////* --plats */
     Route::apiResource('plats', PlatController::class);
 
-/* }); */
+    /* Gestion des spaSessions */
+    Route::apiResource('spaSessions', SpaSessionController::class);
 
-
-
-    /* Gestion des absences */
-    Route::apiResource('absences', AbscenceController::class);
-
-/* RH Routes */
-Route::middleware(['auth:sanctum', 'role:staff', 'departement:RH'])->group(function () {
-    /* Gestion des staff */
-    Route::apiResource('rh', RHController::class)->only('update');
-    Route::get('rh/{id}', [RHController::class, 'storeStaff']);
 });
 
 
-
+/* Staff Routes */
+Route::prefix('staff')->middleware(['auth:sanctum', 'role:staff'])->group(function () {
+    /* Gestion des departements */
+    Route::get('departements/{id}', [DepartementController::class, 'show']);
+    /* Gestion des stats */
+    Route::get('stats', [AdminController::class, 'stats']);
     /* Gestion des tasks */
-    Route::apiResource('tasks', TaskController::class);
+    Route::get('tasks', [TaskController::class, 'index']);
+    /* Gestion des absences */
+    Route::get('absences', [AbscenceController::class, 'index']);
+    
+    /* RH Routes */
+    Route::prefix('rh')->middleware(['departement:RH'])->group(function () {
+        /* Gestion des stats */
+        Route::get('stats', [AdminController::class, 'stats']);
+        /* Gestion des tasks */
+        Route::get('tasks', [TaskController::class, 'index']);
+        /* Gestion des absences */
+        Route::apiResource('absences', AbscenceController::class);
+        /* Gestion des workshift */
+        Route::get('workshifts', [WorkshiftController::class, 'index']);
+        /* Gestion des departements */
+        Route::get('departements', [DepartementController::class, 'index']);
+        Route::get('departements/{id}', [DepartementController::class, 'show']);
+        /* Gestion des staff */
+        Route::prefix('staff')->group(function () {
+            Route::get('/all', [StaffController::class, 'index']);
+            Route::get('/{id}', [StaffController::class, 'Show']);
+            Route::post('/add', [AdminController::class, 'storeRH']);
+            Route::put('/{id}/edit', [AdminController::class, 'updateRH']);
+            Route::delete('/{id}/delete', [AdminController::class, 'destroy']);
+        });
+        /* Gestion des staff */
+        Route::apiResource('', RHController::class)->only('update');
+        Route::get('{id}', [RHController::class, 'storeStaff']);
+    });
 
-/* Chef personnel Routes */
-Route::middleware(['auth:sanctum', 'role:staff', 'departement:ChefPersonnel'])->group(function () {
+    /* Chef personnel Routes */
+    Route::prefix('chef')->middleware(['departement:ChefPersonnel'])->group(function () {
+        /* Gestion des tasks */
+        Route::apiResource('tasks', TaskController::class);
+        /* Gestion des stats */
+        Route::get('stats', [AdminController::class, 'stats']);
+        /* Gestion des absences */
+        Route::get('absences', [AbscenceController::class, 'index']);
+        /* Gestion des departements */
+        Route::get('departements', [DepartementController::class, 'index']);
+        Route::get('departements/{id}', [DepartementController::class, 'show']);
+    });
 });
 
 
+
+/* Client Routes */
+Route::prefix('client')->middleware(['auth:sanctum', 'role:client'])->group(function () {
+
+    /* Gestion des payments */
+    Route::apiResource('payments', PaymentController::class)->except('update');
+
+    /* Gestion des bills */
+    Route::apiResource('bills', BillController::class)->only('index', 'show', 'destroy');
+    Route::post('bills/{commande}/store', [BillController::class, 'storeCommandeBill']);
+    Route::post('bills/{spaSession}/store', [BillController::class, 'storeSpaSessionBill']);
 
     /* Gestion des spaSessions */
     Route::apiResource('spaSessions', SpaSessionController::class);
@@ -99,15 +144,15 @@ Route::middleware(['auth:sanctum', 'role:staff', 'departement:ChefPersonnel'])->
     /* Gestion des commandes */
     Route::apiResource('commandes', CommandeController::class);
 
-/* Client Routes */
-Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
+    Route::withoutMiddleware(['auth:sanctum', 'role:client'])->group(function () {
+        /* Gestion des plats */
+        Route::get('plats', [PlatController::class, 'index']);
 
-    /* Gestion des payments */
-    Route::apiResource('payments', PaymentController::class)->except('update');
+        /* Gestion des chambres */
+        Route::get('chambers', [ChamberController::class, 'index']);
 
-    /* Gestion des bills */
-    Route::apiResource('bills', BillController::class)->only('index', 'show', 'destroy');
-    Route::post('bills/{commande}/store', [BillController::class, 'storeCommandeBill']);
-    Route::post('bills/{spaSession}/store', [BillController::class, 'storeSpaSessionBill']);
+        /* Gestion des types de spa sessions */
+        Route::get('typeSpaSession', [TypeSpaSessionController::class, 'index']);
+    });
 
 });

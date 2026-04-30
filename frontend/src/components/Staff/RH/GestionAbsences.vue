@@ -1,10 +1,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useAuth } from '../../../composables/useAuth';
+
+const { logout } = useAuth();
 
 const absences = ref([]);
 const loading = ref(false);
 const staffList = ref([]);
 const workshifts = ref([]);
+
+const token = localStorage.getItem('token');
 
 // justify modal
 const showJustifyModal = ref(false);
@@ -24,7 +29,9 @@ const totalNonJustifiees = computed(() => absences.value.filter(a => !a.is_justi
 
 async function fetchAbsences() {
     loading.value = true;
-    const res = await fetch('http://localhost:8080/api/absences');
+    const res = await fetch('http://localhost:8080/api/staff/rh/absences', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     absences.value = json.data.data ?? json.data;
     loading.value = false;
@@ -32,8 +39,12 @@ async function fetchAbsences() {
 
 async function fetchStaffAndWorkshifts() {
     const [sRes, wRes] = await Promise.all([
-        fetch('http://localhost:8080/api/admin/staff/all'),
-        fetch('http://localhost:8080/api/workshifts')
+        fetch('http://localhost:8080/api/staff/rh/staff/all', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:8080/api/staff/rh/workshifts', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
     ]);
     const sJson = await sRes.json();
     const wJson = await wRes.json();
@@ -52,9 +63,13 @@ async function submitCreate(e) {
     e.preventDefault();
     createError.value = '';
     createSuccess.value = '';
-    const res = await fetch('http://localhost:8080/api/absences', {
+    const res = await fetch('http://localhost:8080/api/staff/rh/absences', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json', 
+          'Accept': 'application/json' 
+        },
         body: JSON.stringify(createForm.value)
     });
     const json = await res.json();
@@ -84,9 +99,12 @@ async function submitJustification(e) {
     fd.append('is_justified', justifyForm.value.is_justified ? 1 : 0);
     if (justifyForm.value.pdf) fd.append('pdf', justifyForm.value.pdf);
 
-    const res = await fetch(`http://localhost:8080/api/absences/${currentAbsence.value.id}`, {
+    const res = await fetch(`http://localhost:8080/api/staff/rh/absences/${currentAbsence.value.id}`, {
         method: 'POST',
-        headers: { 'Accept': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json' 
+        },
         body: fd
     });
     const json = await res.json();
@@ -140,7 +158,7 @@ onMounted(() => {
           <span class="text-white material-symbols-outlined" data-icon="logout">logout</span>
           <div class="overflow-hidden">
          <!--   logout  -->
-            <a href="/login" class="text-white font-bold text-label-md leading-none block">Déconnexion</a>
+            <button @click="logout" class="text-white font-bold text-label-md leading-none block cursor-pointer">Déconnexion</button>
           </div>
         </div>
       </div>

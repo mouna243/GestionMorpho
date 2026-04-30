@@ -1,5 +1,8 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
+import { useAuth } from '../../composables/useAuth';
+
+const { logout } = useAuth();
 
 let loading = ref(false);
 let error = ref(null);
@@ -10,6 +13,7 @@ let editTypeForm = ref(false);
 let editChamberForm = ref(false);
 let currentType = ref(null);
 let currentChamber = ref(null);
+const token = localStorage.getItem('token');
 
 let dataAddType = reactive({ name: '', description: '', prix: '', is_available: true });
 let dataEditType = reactive({ name: '', description: '', prix: '', is_available: true });
@@ -42,7 +46,9 @@ const gestionChambers = async () => {
     loading.value = true;
     error.value = null;
     try {
-        const response = await fetch('http://localhost:8080/api/chamberTypes');
+        const response = await fetch('http://localhost:8080/api/admin/chamberTypes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         const json = await response.json();
         if (!response.ok) throw new Error(json.message || 'Failed to fetch');
         allChambers.value = json.data.data ?? json.data;
@@ -59,9 +65,13 @@ const addType = async () => {
     loading.value = true;
     error.value = null;
     try {
-        const response = await fetch('http://localhost:8080/api/chamberTypes', {
+        const response = await fetch('http://localhost:8080/api/admin/chamberTypes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json' 
+            },
             body: JSON.stringify({
                 name: dataAddType.name,
                 description: dataAddType.description,
@@ -91,10 +101,13 @@ const addChamber = async () => {
     formData.append('is_available', dataAddChamber.is_available ? 1 : 0);
     formData.append('chamber_type_id', currentType.value);
     try {
-        const response = await fetch('http://localhost:8080/api/chambers', {
+        const response = await fetch('http://localhost:8080/api/admin/chambers', {
             method: 'POST',
             body: formData,
-            headers: { 'Accept': 'application/json' }
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json' 
+            }
         });
         const json = await response.json();
         if (!response.ok) throw new Error(json.message || 'Failed');
@@ -113,9 +126,13 @@ const editType = async () => {
     error.value = null;
     loading.value = true;
     try {
-        const response = await fetch(`http://localhost:8080/api/chamberTypes/${currentType.value}`, {
+        const response = await fetch(`http://localhost:8080/api/admin/chamberTypes/${currentType.value}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json' 
+            },
             body: JSON.stringify({
                 name: dataEditType.name,
                 description: dataEditType.description,
@@ -146,10 +163,13 @@ const editChamber = async () => {
     formData.append('chamber_type_id', dataEditChamber.chamber_type_id);
     if (dataEditChamber.image instanceof File) formData.append('image', dataEditChamber.image);
     try {
-        const response = await fetch(`http://localhost:8080/api/chambers/${currentChamber.value}`, {
+        const response = await fetch(`http://localhost:8080/api/admin/chambers/${currentChamber.value}`, {
             method: 'POST',
             body: formData,
-            headers: { 'Accept': 'application/json' }
+            headers: { 
+                'Authorization': `Bearer ${token}`, 
+                'Accept': 'application/json' 
+            }
         });
         const json = await response.json();
         if (!response.ok) throw new Error(json.message || 'Failed');
@@ -165,13 +185,25 @@ const editChamber = async () => {
 
 const deleteType = async (id) => {
     if (!confirm('Supprimer ce type de chambre ?')) return;
-    await fetch(`http://localhost:8080/api/chamberTypes/${id}`, { method: 'DELETE' });
+    await fetch(`http://localhost:8080/api/admin/chamberTypes/${id}`, { 
+        method: 'DELETE',
+        headers: { 
+            'Authorization': `Bearer ${token}`, 
+            'Accept': 'application/json' 
+        }
+    });
     await gestionChambers();
 };
 
 const deleteChamber = async (id) => {
     if (!confirm('Supprimer cette chambre ?')) return;
-    await fetch(`http://localhost:8080/api/chambers/${id}`, { method: 'DELETE' });
+    await fetch(`http://localhost:8080/api/admin/chambers/${id}`, { 
+        method: 'DELETE' ,
+        headers: { 
+            'Authorization': `Bearer ${token}`, 
+            'Accept': 'application/json' 
+        }
+    });
     await gestionChambers();
 };
 </script>
@@ -222,11 +254,11 @@ const deleteChamber = async (id) => {
             <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
 
                 <div class="space-y-1">
-                    <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                        href="#">
+                    <button class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold cursor-pointer"
+                        @click="logout">
                         <span class="material-symbols-outlined" data-icon="logout">logout</span>
                         <span>Déconnexion</span>
-                    </a>
+                    </button>
                 </div>
             </div>
         </aside>

@@ -28,7 +28,7 @@ class User extends Authenticatable
      ];
      // reservations , spa_sessions, commandes , departements , absences
 
-     public function departements(){
+     public function departement(){
         return $this->belongsTo(Departement::class);
      }
 

@@ -1,5 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useAuth } from '../../composables/useAuth';
+
+const { logout } = useAuth();
+
+const token = localStorage.getItem('token');
 
 // ── Départements ──────────────────────────────────────────
 const departements = ref([]);
@@ -29,14 +34,18 @@ const tauxActivite = computed(() => departements.value.length
 
 // ── Département CRUD ──────────────────────────────────────
 async function fetchDepartements() {
-    const res = await fetch('http://localhost:8080/api/departements');
+    const res = await fetch('http://localhost:8080/api/admin/departements', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     departements.value = json.data.data ?? json.data;
 }
 
 async function fetchStaffs(dept) {
     if (selectedDept.value?.id === dept.id) { selectedDept.value = null; return; }
-    const res = await fetch(`http://localhost:8080/api/departements/${dept.id}`);
+    const res = await fetch(`http://localhost:8080/api/admin/departements/${dept.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     selectedDept.value = json.data;
 }
@@ -45,9 +54,13 @@ async function addDepartement(e) {
     e.preventDefault();
     errors.value = {};
     successMsg.value = '';
-    const res = await fetch('http://localhost:8080/api/departements', {
+    const res = await fetch('http://localhost:8080/api/admin/departements', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json' 
+        },
         body: JSON.stringify({ ...form.value, is_active: form.value.is_active ? 1 : 0 })
     });
     const json = await res.json();
@@ -67,9 +80,13 @@ function openEditDept(dept) {
 async function updateDepartement(e) {
     e.preventDefault();
     editDeptErrors.value = {};
-    const res = await fetch(`http://localhost:8080/api/departements/${editDeptId.value}`, {
+    const res = await fetch(`http://localhost:8080/api/admin/departements/${editDeptId.value}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json' 
+        },
         body: JSON.stringify({ ...editDeptForm.value, is_active: editDeptForm.value.is_active ? 1 : 0 })
     });
     const json = await res.json();
@@ -82,7 +99,10 @@ async function updateDepartement(e) {
 
 async function deleteDepartement(id) {
     if (!confirm('Supprimer ce département ?')) return;
-    await fetch(`http://localhost:8080/api/departements/${id}`, { method: 'DELETE' });
+    await fetch(`http://localhost:8080/api/admin/departements/${id}`, { 
+        headers: { 'Authorization': `Bearer ${token}` } ,
+        method: 'DELETE' 
+    });
     departements.value = departements.value.filter(d => d.id !== id);
     if (selectedDept.value?.id === id) selectedDept.value = null;
 }
@@ -115,7 +135,11 @@ async function submitRH(e) {
         : 'http://localhost:8080/api/admin/staff/add';
     const res = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json' 
+        },
         body: JSON.stringify(rhForm.value)
     });
     const json = await res.json();
@@ -128,7 +152,10 @@ async function submitRH(e) {
 
 async function deleteRH(staffId) {
     if (!confirm('Supprimer ce membre du personnel ?')) return;
-    await fetch(`http://localhost:8080/api/admin/staff/${staffId}/delete`, { method: 'DELETE' });
+    await fetch(`http://localhost:8080/api/admin/staff/${staffId}/delete`, { 
+        headers: { 'Authorization': `Bearer ${token}` },
+        method: 'DELETE' 
+    });
     if (selectedDept.value) fetchStaffs({ id: selectedDept.value.id });
 }
 
@@ -180,12 +207,11 @@ onMounted(fetchDepartements);
             <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
 
                 <div class="space-y-1">
-                
-                    <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold"
-                        href="#">
+                    <button class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold cursor-pointer"
+                        @click="logout">
                         <span class="material-symbols-outlined" data-icon="logout">logout</span>
                         <span>Déconnexion</span>
-                    </a>
+                    </button>
                 </div>
             </div>
         </aside>

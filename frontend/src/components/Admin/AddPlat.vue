@@ -1,7 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useAuth } from '../../composables/useAuth';
 
-const API = 'http://localhost:8080/api/plats';
+const { logout } = useAuth();
+
+const API = 'http://localhost:8080/api/admin/plats';
+const token = localStorage.getItem('token');
 
 const plats = ref([]);
 const totalPlats = ref(0);
@@ -14,7 +18,11 @@ const editPlat = ref({ name: '', description: '', prix: '', is_available: true, 
 const errors = ref({});
 
 async function fetchPlats() {
-    const res = await fetch(API);
+    const res = await fetch(API, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     const json = await res.json();
     plats.value = json.data.data ?? json.data;
     totalPlats.value = json.data.total ?? plats.value.length;
@@ -29,7 +37,14 @@ async function addPlat(e) {
     fd.append('prix', newPlat.value.prix);
     if (newPlat.value.image) fd.append('image', newPlat.value.image);
 
-    const res = await fetch(API, { method: 'POST', body: fd });
+    const res = await fetch(API, { 
+        method: 'POST',
+        body: fd,
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json' 
+        }
+     });
     const json = await res.json();
     if (!res.ok) { errors.value = json.errors ?? {}; return; }
     plats.value.unshift(json.data);
@@ -56,7 +71,14 @@ async function updatePlat(e) {
     fd.append('is_available', editPlat.value.is_available ? 1 : 0);
     if (editPlat.value.image) fd.append('image', editPlat.value.image);
 
-    const res = await fetch(`${API}/${currentPlatId.value}`, { method: 'POST', body: fd });
+    const res = await fetch(`${API}/${currentPlatId.value}`, { 
+        method: 'POST',
+        body: fd,
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json' 
+        }
+     });
     const json = await res.json();
     if (!res.ok) { errors.value = json.errors ?? {}; return; }
     const idx = plats.value.findIndex(p => p.id === currentPlatId.value);
@@ -65,7 +87,13 @@ async function updatePlat(e) {
 }
 
 async function deletePlat(id) {
-    const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API}/${id}`, { 
+        method: 'DELETE',
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json' 
+        }
+     });
     if (res.ok) {
         plats.value = plats.value.filter(p => p.id !== id);
         totalPlats.value--;
@@ -115,10 +143,11 @@ onMounted(fetchPlats);
             </nav>
             <div class="px-4 mt-auto pt-6 border-t border-violet-500/30">
                 <div class="space-y-1">
-                    <a class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold" href="#">
-                        <span class="material-symbols-outlined">logout</span>
+                    <button class="text-violet-100 hover:text-white px-4 py-2 flex items-center gap-3 transition-colors font-plus-jakarta text-sm font-semibold cursor-pointer"
+                        @click="logout">
+                        <span class="material-symbols-outlined" data-icon="logout">logout</span>
                         <span>Déconnexion</span>
-                    </a>
+                    </button>
                 </div>
             </div>
         </aside>

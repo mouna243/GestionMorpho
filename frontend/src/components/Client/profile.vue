@@ -9,15 +9,23 @@ const spaSessions  = ref([]);
 const commandes    = ref([]);
 const loading      = ref(false);
 
+const token = localStorage.getItem('token');
+
 async function fetchAll() {
     if (!authUser.value?.id) return;
     loading.value = true;
     const uid = authUser.value.id;
 
     const [rRes, sRes, cRes] = await Promise.all([
-        fetch('http://localhost:8080/api/reservations'),
-        fetch('http://localhost:8080/api/spaSessions'),
-        fetch('http://localhost:8080/api/commandes'),
+        fetch('http://localhost:8080/api/client/reservations', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:8080/api/client/spaSessions', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:8080/api/client/commandes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }),
     ]);
     const [rJson, sJson, cJson] = await Promise.all([rRes.json(), sRes.json(), cRes.json()]);
 

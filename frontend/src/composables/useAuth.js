@@ -10,6 +10,8 @@ export function useAuth() {
     function logout() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('role');
+        localStorage.removeItem('department');
         router.push('/login');
     }
 

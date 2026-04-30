@@ -1,5 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useAuth } from '../../../composables/useAuth';
+
+const { logout } = useAuth();
+
+const token = localStorage.getItem('token');
 
 const me = ref(null);
 const stats = ref({});
@@ -7,19 +12,25 @@ const absences = ref([]);
 const tasks = ref([]);
 
 async function fetchMe() {
-    const res = await fetch('http://localhost:8080/api/auth/me');
+    const res = await fetch('http://localhost:8080/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
     const json = await res.json();
     me.value = json.user;
 }
 
 async function fetchStats() {
-    const res = await fetch('http://localhost:8080/api/admin/stats');
+    const res = await fetch('http://localhost:8080/api/staff/rh/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     stats.value = json.data;
 }
 
 async function fetchAbsences() {
-    const res = await fetch('http://localhost:8080/api/absences');
+    const res = await fetch('http://localhost:8080/api/staff/rh/absences', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     const all = json.data.data ?? json.data;
     // filter by authenticated user staff_id
@@ -29,7 +40,9 @@ async function fetchAbsences() {
 }
 
 async function fetchTasks() {
-    const res = await fetch('http://localhost:8080/api/tasks');
+    const res = await fetch('http://localhost:8080/api/staff/rh/tasks', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     tasks.value = json.data.data ?? json.data;
 }
@@ -78,7 +91,7 @@ onMounted(async () => {
           <span class="text-white material-symbols-outlined" data-icon="logout">logout</span>
           <div class="overflow-hidden">
          <!--   logout  -->
-            <a href="/login" class="text-white font-bold text-label-md leading-none block">Déconnexion</a>
+            <button @click="logout" class="text-white font-bold text-label-md leading-none block cursor-pointer">Déconnexion</button>
           </div>
         </div>
       </div>

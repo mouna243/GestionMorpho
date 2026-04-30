@@ -42,11 +42,28 @@ const login = async () => {
     const role = meData.user?.role
     
     localStorage.setItem('user', JSON.stringify(meData.user))
+    localStorage.setItem('role', role)
 
     if (role === 'admin') {
       router.push('/admin/dashboard')
     } else if (role === 'staff') {
-      router.push('/Staff/dashbord')
+      const dept = await fetch(`http://localhost:8080/api/staff/departements/${meData.user.departement_id}`, {
+        headers: { 'Authorization': `Bearer ${data.token}`, 'Accept': 'application/json' }
+      })
+
+      const deptData = await dept.json()
+      console.log(deptData.data.name);
+      
+      localStorage.setItem('department', deptData.data.name)
+      
+      if (deptData.data.name === 'RH') {
+        router.push('/RH/dashbord')
+      } else if(deptData.data.name === 'ChefPersonnel'){ 
+        router.push('/ChefPersonnel/dashbord')
+      }else {
+        router.push('/Staff/dashbord')
+      }
+
     } else if (role === 'client') {
       router.push('/')
     } else {

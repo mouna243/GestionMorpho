@@ -9,6 +9,8 @@ const roomList = ref([]);
 const error = ref(null);
 const loading = ref(false);
 
+const token = localStorage.getItem('token');
+
 // reservation modal
 const showModal = ref(false);
 const selectedRoom = ref(null);
@@ -23,8 +25,7 @@ const chambers = async () => {
     try {
         error.value = null;
         loading.value = true;
-        // refresh user from API to ensure we have the correct id
-        const token = localStorage.getItem('token');
+
         if (token) {
             const meRes = await fetch('http://localhost:8080/api/auth/me', {
                 headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
@@ -35,7 +36,7 @@ const chambers = async () => {
                 localStorage.setItem('user', JSON.stringify(meJson.user));
             }
         }
-        const result = await fetch('http://localhost:8080/api/chambers');
+        const result = await fetch('http://localhost:8080/api/client/chambers');
         const json = await result.json();
         if (!result.ok) throw new Error(json.message || 'Failed to fetch rooms');
         roomList.value = json.data.data ?? json.data;
@@ -64,9 +65,9 @@ async function submitReservation(e) {
     
 
     const prix = selectedRoom.value.chamber_type?.prix ?? 0;
-    const res = await fetch('http://localhost:8080/api/reservations', {
+    const res = await fetch('http://localhost:8080/api/client/reservations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
             date_enter: resForm.value.date_enter,
             date_sortie: resForm.value.date_sortie,

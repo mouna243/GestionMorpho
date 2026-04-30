@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Commande;
 use App\Models\Plat;
-use App\Models\Service;
 use Illuminate\Http\Request;
 use function Illuminate\Support\now;
 
@@ -43,14 +42,10 @@ class CommandeController extends Controller
             $prix += $plat['quantite'] * Plat::find($plat['plat_id'])->prix;
         }
 
-        // find or use first service (Restoration)
-        $service = Service::first();
-
         $commande = Commande::create([
             'date' => $date,
             'prix' => $prix,
-            'client_id' => $request->client_id,
-            'service_id' => $service?->id ?? 1,
+            'client_id' => $request->client_id
         ]);
 
         foreach ($request->plats as $plat) {

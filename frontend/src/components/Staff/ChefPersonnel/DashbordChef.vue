@@ -1,5 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useAuth } from '../../../composables/useAuth';
+
+const { logout } = useAuth();
+
+const token = localStorage.getItem('token');
 
 const me = ref(null);
 const stats = ref({});
@@ -19,38 +24,50 @@ const tasksTerminees = computed(() => allTasks.value.filter(t => t.is_completed)
 const tasksEnCours = computed(() => allTasks.value.filter(t => !t.is_completed).length);
 
 async function fetchMe() {
-    const res = await fetch('http://localhost:8080/api/auth/me');
+    const res = await fetch('http://localhost:8080/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     me.value = json.user;
 }
 
 async function fetchStats() {
-    const res = await fetch('http://localhost:8080/api/admin/stats');
+    const res = await fetch('http://localhost:8080/api/staff/chef/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     stats.value = json.data;
 }
 
 async function fetchMyTasks() {
-    const res = await fetch('http://localhost:8080/api/tasks');
+    const res = await fetch('http://localhost:8080/api/staff/chef/tasks', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     allTasks.value = json.data.data ?? json.data;
     myTasks.value = allTasks.value;
 }
 
 async function fetchMyAbsences() {
-    const res = await fetch('http://localhost:8080/api/absences');
+    const res = await fetch('http://localhost:8080/api/staff/chef/absences', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     const all = json.data.data ?? json.data;
     myAbsences.value = me.value ? all.filter(a => a.staff_id == me.value.id) : all;
 }
 
 async function fetchDepartements() {
-    const res = await fetch('http://localhost:8080/api/departements');
+    const res = await fetch('http://localhost:8080/api/staff/chef/departements', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
     const json = await res.json();
     const depts = json.data.data ?? json.data;
     departements.value = await Promise.all(
         depts.map(async d => {
-            const r = await fetch(`http://localhost:8080/api/departements/${d.id}`);
+            const r = await fetch(`http://localhost:8080/api/staff/chef/departements/${d.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const j = await r.json();
             return j.data;
         })
@@ -81,10 +98,14 @@ async function submitTask(e) {
     e.preventDefault();
     taskErrors.value = {};
     const isEdit = taskModalMode.value === 'edit';
-    const url = isEdit ? `http://localhost:8080/api/tasks/${editTaskId.value}` : 'http://localhost:8080/api/tasks';
+    const url = isEdit ? `http://localhost:8080/api/staff/chef/tasks/${editTaskId.value}` : 'http://localhost:8080/api/staff/chef/tasks';
     const res = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json', 
+          'Accept': 'application/json' 
+        },
         body: JSON.stringify({ ...taskForm.value, is_completed: false })
     });
     const json = await res.json();
@@ -95,7 +116,12 @@ async function submitTask(e) {
 
 async function deleteTask(id) {
     if (!confirm('Supprimer cette tâche ?')) return;
-    await fetch(`http://localhost:8080/api/tasks/${id}`, { method: 'DELETE' });
+    await fetch(`http://localhost:8080/api/staff/chef/tasks/${id}`, { 
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }});
     await fetchMyTasks();
 }
 
@@ -123,13 +149,13 @@ onMounted(async () => {
         
       </nav>
       <div class="mt-auto px-6">
-        <div class="bg-[#356128]/30 rounded-xl p-4 flex items-center gap-3">
+        <button @click="logout"  class="bg-[#356128]/30 rounded-xl p-4 flex items-center gap-3 cursor-pointer block">
           <!-- logout icone -->
            <span class="material-symbols-outlined text-[#f9f9f1]">logout</span>
           <div class="overflow-hidden">
             <p class="text-white font-bold text-body-sm truncate">Logout</p>
           </div>
-        </div>
+        </button>
       </div>
     </aside>
 

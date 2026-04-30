@@ -17,6 +17,63 @@ import Absences from "../components/Staff/RH/GestionAbsences.vue"
 import DashbordStaff from "../components/Staff/DashbordStaff.vue";
 import AddSpaSession from "../components/Admin/AddSpa.vue"
 import Profile from "../components/Client/profile.vue"
+
+function isAuth(to, from, next) {
+  if (localStorage.getItem("token")) {
+    next();
+  } else {
+    next({ name: "login" });
+  }
+}
+
+function isGuest(to, from, next) {
+  if (!localStorage.getItem("token")) {
+    next();
+  } else {
+    next({ name: "home" });
+  }
+}
+
+function isAdmin(to, from, next) {
+  if (localStorage.getItem("role") === "admin") {
+    next();
+  } else {
+    next({ name: "home" });
+  }
+}
+
+function isClient(to, from, next) {
+  if (localStorage.getItem("role") === "client") {
+    next();
+  } else {
+    next({ name: "home" });
+  }
+}
+
+function isChef (to, from, next) {
+  if (localStorage.getItem("role") === "staff" && localStorage.getItem("department") === "ChefPersonnel") {
+    next();
+  } else {
+    next({ name: "home" });
+  }
+}
+
+function isRH (to, from, next) {
+  if (localStorage.getItem("role") === "staff" && localStorage.getItem("department") === "RH") {
+    next();
+  } else {
+    next({ name: "home" });
+  }
+}
+
+function isStaff (to, from, next) {
+  if (localStorage.getItem("role") === "staff" && localStorage.getItem("department") !== "ChefPersonnel" && localStorage.getItem("department") !== "RH") {
+    next();
+  } else {
+    next({ name: "home" });
+  }
+}
+
 const routes = [
 
     // Auth views
@@ -30,12 +87,14 @@ const routes = [
     path: "/register",
     name: "register",
     component: Register,
+    beforeEnter: [isGuest],
   },
   //////
   {
     path: "/login",
     name: "login",
     component: Login,
+    beforeEnter: [isGuest],
   },
  // client views
   {
@@ -56,7 +115,8 @@ const routes = [
   {
     path:"/client/profile",
     name:"profile",
-    component:Profile
+    component:Profile,
+    beforeEnter: [isAuth, isClient]
   },
 // Admin views
 
@@ -64,60 +124,71 @@ const routes = [
   path: "/admin/dashboard",
   name: "admin",
   component: adminDashboard,
+  beforeEnter: [isAuth, isAdmin]
 },
 {
     path : "/admin/plats",
     name : "plats",
-    component : AddPlat
+    component : AddPlat,
+    beforeEnter: [isAuth, isAdmin]
 },
 {
   path : "/admin/departements",
   name : "departement",
-  component : AddDepartement
+  component : AddDepartement,
+  beforeEnter: [isAuth, isAdmin]
 },
 {
     path : "/admin/chambers",
     name : "chambers",
-    component : AddChambers
+    component : AddChambers,
+    beforeEnter: [isAuth, isAdmin]
 },
 {
     path : "/admin/WorkShift",
     name : "WorkShift",
-    component : AddWorkShift
+    component : AddWorkShift,
+    beforeEnter: [isAuth, isAdmin]
 },
 {
     path : "/admin/SpaSession",
     name : "AddSpaSession",
-    component : AddSpaSession
+    component : AddSpaSession,
+    beforeEnter: [isAuth, isAdmin]
 },
 /* Staff views */
 {
     path : "/RH/dashbord",
     name : "DashbordRH",
-    component : DashbordRH
+    component : DashbordRH,
+    beforeEnter: [isAuth, isRH]
 },
 {
   path : "/RH/personnel",
   name : "personnel",
-  component : Personnel
+  component : Personnel,
+  beforeEnter: [isAuth, isRH]
 },
 /* Chef Personnel */
 {
   path : "/ChefPersonnel/dashbord",
   name : "ChefDashbord",
-  component : DashbordChef
+  component : DashbordChef,
+  beforeEnter: [isAuth, isChef]
 },
 {
 
   path : "/RH/Absences",
   name : "Absences",
-  component : Absences
+  component : Absences,
+  beforeEnter: [isAuth, isRH]
 },
 {
 
   path : "/Staff/dashbord",
   name : "DashbordStaff",
-  component : DashbordStaff
+  component : DashbordStaff,
+  beforeEnter: [isAuth, isStaff]
 }
 ];
 

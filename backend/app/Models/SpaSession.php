@@ -16,11 +16,6 @@ class SpaSession extends Model
         'is_validated'
     ];
 
-    public function service()
-    {
-        return $this->belongsTo(Service::class)->where('name', 'SPA');
-    }
-
     public function client()
     {
         return $this->belongsTo(User::class,'client_id')->where('role', 'client');
